@@ -6,4 +6,4 @@
  * @FilePath: \undefinedc:\Users\wzc21\Desktop\new\lib.github.io\allversion\images\logo.js
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  */
-document.write('<img src="https://lib.ited.top/favicon.ico" alt="ited博客">');
+document.write('<img src="//static.ited.top/@/favicon.ico" alt="ited博客">');
