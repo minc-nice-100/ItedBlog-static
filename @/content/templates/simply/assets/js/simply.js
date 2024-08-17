@@ -272,8 +272,7 @@ const simplys = {
           if (typeof (res) === 'object' && res.code == 0) {
             layer.msg('发送成功~');
             setTimeout(function () {
-              //window.location.reload();
-              $.pjax.reload('#pjax-container')
+              window.location.reload();
             }, 300);
             return;
           }
@@ -317,10 +316,4 @@ const simplys = {
 $(function () {
   simplys.init();
   simplys.filmstrip('#swiper-filmstrip-index-1');
-})
-
-$(function(){
-  setInterval(function (){
-    $(".comment-items").load(location.href,".comment-items");
-  },1000);
- })
+});
