@@ -272,7 +272,8 @@ const simplys = {
           if (typeof (res) === 'object' && res.code == 0) {
             layer.msg('发送成功~');
             setTimeout(function () {
-              window.location.reload();
+              //window.location.reload();
+              $.pjax.reload('#pjax-container')
             }, 300);
             return;
           }
