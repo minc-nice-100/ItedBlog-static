@@ -1,9 +1,10 @@
 let layer = layui.layer, form = layui.form, laydate = layui.laydate, upload = layui.upload, util = layui.util;
 form.verify({
   chinese: function(value, elem) {
-    //if (!new RegExp("^.*[\u4e00-\u9fa5\]+.*$").test(value)) {
-    //  return '必须包含中文';
-    //}
+   // if (!new RegExp("^.*[\u4e00-\u9fa5\]+.*$").test(value)) {
+    if (false) {
+      return '必须包含中文';
+    }
   },
 });
 const helper = {
