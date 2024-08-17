@@ -253,9 +253,16 @@ const simplys = {
         url: data.form.action,
         data: field,
         async: false,
+        beforeSend: function(){
+          layer.msg("提交中...");
+        },
         success: function (res) {
           if (typeof (res) === 'string') {
-            layer.msg('太快了吧~过一会儿再来');
+            var pattern = /<div class="main">[\r\n]+<p>(.*?)<\/p>/;
+            if(pattern.test(res)) {
+              res = res.match(pattern);
+              layer.msg(res[1]);
+            };
             return;
           }
           if (typeof (res) === 'object' && res.code !== 0) {
@@ -310,3 +317,9 @@ $(function () {
   simplys.init();
   simplys.filmstrip('#swiper-filmstrip-index-1');
 })
+
+$(function(){
+  setInterval(function (){
+    $(".comment-items").load(location.href,".comment-items");
+  },1000);
+ })
