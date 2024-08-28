@@ -246,6 +246,7 @@ const simplys = {
   },
   comment: function () {
     form.on('submit(comment)', function (data) {
+      layer.msg("提交中...");
       var field = data.field;
       field.resp = 'json';
       $.ajax({
@@ -253,8 +254,9 @@ const simplys = {
         url: data.form.action,
         data: field,
         async: false,
-        beforeSend: function(){
-          layer.msg("提交中...");
+        beforeSend: function () {
+          // 禁用按钮防止重复提交
+          $("#comment-form > div.display-flex.flex-warp.foot > button").attr({ disabled: "disabled" });
         },
         success: function (res) {
           if (typeof (res) === 'string') {
@@ -276,6 +278,9 @@ const simplys = {
             }, 300);
             return;
           }
+        },
+        complete: function () {
+          $("#comment-form > div.display-flex.flex-warp.foot > button").removeAttr("disabled");
         },
         error: function (xhr) {
           layer.msg(xhr.responseJSON.msg);
