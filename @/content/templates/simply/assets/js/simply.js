@@ -281,9 +281,11 @@ const simplys = {
           }
         },
         complete: function () {
+          turnstile.reset()
           $("#comment-form > div.display-flex.flex-warp.foot > button").removeAttr("disabled");
         },
         error: function (xhr) {
+          turnstile.reset()
           layer.msg(xhr.responseJSON.msg);
           simplys.randomCode();
         },
@@ -294,11 +296,13 @@ const simplys = {
       $('input[name=pid]').attr('value', $(this).data('pid'));
       $(this).parent().after($('.comment-post'));
       $('.comment-cancle').css('display', 'flex');
+      turnstile.reset()
     })
     $(document).on('click', '.comment-cancle', function () {
       $('input[name=pid]').attr('value', '0');
       $('.comment-cancle').css('display', 'none');
       $('.comment-body').append($('.comment-post'));
+      turnstile.reset()
     })
   },
   test: function (o) {
