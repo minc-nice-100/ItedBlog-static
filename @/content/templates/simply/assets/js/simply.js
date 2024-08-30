@@ -259,6 +259,7 @@ const simplys = {
           $("#comment-form > div.display-flex.flex-warp.foot > button").attr({ disabled: "disabled" });
         },
         success: function (res) {
+          turnstile.reset()
           if (typeof (res) === 'string') {
             var pattern = /<div class="main">[\r\n]+<p>(.*?)<\/p>/;
             if(pattern.test(res)) {
