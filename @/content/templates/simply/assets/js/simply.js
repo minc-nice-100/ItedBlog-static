@@ -246,17 +246,17 @@ const simplys = {
   },
   comment: function () {
     form.on('submit(comment)', function (data) {
-      layer.msg("提交中...");
       var field = data.field;
       field.resp = 'json';
       $.ajax({
         type: 'POST',
         url: data.form.action,
         data: field,
-        async: false,
+        async: true,
         beforeSend: function () {
           // 禁用按钮防止重复提交
-          $("#comment-form > div.display-flex.flex-warp.foot > button").attr({ disabled: "disabled" });
+          layer.msg("提交中...");
+          $("#comment-form > div.display-flex.flex-warp.foot > button").addClass('layui-btn-disabled').attr({ disabled: "disabled" });
         },
         success: function (res) {
           turnstile.reset()
@@ -282,7 +282,7 @@ const simplys = {
         },
         complete: function () {
           turnstile.reset()
-          $("#comment-form > div.display-flex.flex-warp.foot > button").removeAttr("disabled");
+          $("#comment-form > div.display-flex.flex-warp.foot > button").removeClass('layui-btn-disabled').removeAttr("disabled");
         },
         error: function (xhr) {
           turnstile.reset()
