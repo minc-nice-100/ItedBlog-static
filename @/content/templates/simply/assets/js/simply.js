@@ -321,9 +321,37 @@ const simplys = {
     this.comment();
     this.randomCode();
   },
+  turnstile: function (callback) {
+    switch (callback) {
+      case "callback":
+        var value = "成功";
+        break;
+      case "error-callback":
+        var value = "发生错误";
+        break;
+      case "expired-callback":
+        var value = "质询超时";
+        break;
+      case "before-interactive-callback":
+        var value = "请与质询交互";
+        break;
+      case "after-interactive-callback":
+        var value = "交互完成";
+        break;
+      case "unsupported-callback":
+        var value = "不支持此浏览器";
+        break;
+      case "timeout-callback":
+        var value = "质询超时";
+        break;
+    };
+    var value = "("+value+")";
+    $("#comment-form > div.cf-turnstile > span.cf-spinner").text(value);
+  },
 };
 
 $(function () {
   simplys.init();
   simplys.filmstrip('#swiper-filmstrip-index-1');
 });
+
