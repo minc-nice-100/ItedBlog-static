@@ -1,0 +1,30 @@
+{
+  "id": "",
+  "name": "",
+  "font_family": "iconfont",
+  "css_prefix_text": "icon-",
+  "description": "",
+  "glyphs": [
+    {
+      "icon_id": "8827263",
+      "name": "up",
+      "font_class": "up",
+      "unicode": "e945",
+      "unicode_decimal": 59717
+    },
+    {
+      "icon_id": "11993447",
+      "name": "sun",
+      "font_class": "sun",
+      "unicode": "e78a",
+      "unicode_decimal": 59274
+    },
+    {
+      "icon_id": "18991680",
+      "name": "moon",
+      "font_class": "moon",
+      "unicode": "e867",
+      "unicode_decimal": 59495
+    }
+  ]
+}
