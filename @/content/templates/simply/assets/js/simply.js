@@ -246,6 +246,10 @@ const simplys = {
   },
   comment: function () {
     form.on('submit(comment)', function (data) {
+      if (!turnstile.getResponse()) {
+        layer.msg('请先完成人机验证');
+        return false;
+      }
       var field = data.field;
       field.resp = 'json';
       $.ajax({
