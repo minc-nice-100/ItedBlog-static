@@ -1614,6 +1614,11 @@ article .content video {
   max-width: 100%;
   border-radius: 5px;
 }
+article .content img{
+  border-radius: 5px;
+  border: 2px solid var(--color-theme); /* 使用主题颜色作为边框 */
+  padding: 3px; /* 可选：添加内边距以分离图片和边框 */
+}
 article .content blockquote {
   padding: 1em;
   background-color: var(--color-text-1-light);
