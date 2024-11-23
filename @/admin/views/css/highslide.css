@@ -3,7 +3,7 @@
 * @version: 5.0.0
 */
 .highslide-container div {
-	font-family: Verdana, Helvetica;
+	font-family: "LXGW WenKai", Verdana, Helvetica;
 	font-size: 10pt;
 }
 .highslide-container table {
@@ -646,7 +646,7 @@ html>/**/body .highslide-gallery ul img {
     line-height: 18px;
 	padding: 1px 0 1px 18px;
     color: #333;
-	font-family: "Trebuchet MS", Arial, sans-serif;
+	font-family: "LXGW WenKai", "Trebuchet MS", Arial, sans-serif;
 	font-size: 12px;
 	font-weight: bold;
 	white-space: nowrap;
