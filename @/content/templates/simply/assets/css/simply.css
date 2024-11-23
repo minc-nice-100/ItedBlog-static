@@ -1,26 +1,26 @@
 :root {
-  --color-theme: #007aff;
-  --color-theme-light: #007aff;
-  --color-theme-9: #1f8bff;
-  --color-theme-9-light: #1f8bff;
-  --color-theme-8: #3d9bff;
-  --color-theme-8-light: #3d9bff;
-  --color-theme-7: #59a9ff;
-  --color-theme-7-light: #59a9ff;
-  --color-theme-6: #74b7ff;
-  --color-theme-6-light: #74b7ff;
-  --color-theme-5: #92c7ff;
-  --color-theme-5-light: #92c7ff;
-  --color-theme-4: #b9ddff;
-  --color-theme-4-light: #b9ddff;
-  --color-theme-3: #cee7ff;
-  --color-theme-3-light: #cee7ff;
-  --color-theme-2: #dff0ff;
-  --color-theme-2-light: #dff0ff;
-  --color-theme-1: #eef7ff;
-  --color-theme-1-light: #eef7ff;
-  --color-theme-0: #f6fbff;
-  --color-theme-0-light: #f6fbff;
+  --color-theme: #28a745; /* 活泼的绿色 */
+  --color-theme-light: #5cb85c; /* 更浅的绿色 */
+  --color-theme-9: #40c763; /* 自定义其他相关颜色 */
+  --color-theme-9-light: #40c763;
+  --color-theme-8: #68d69a;
+  --color-theme-8-light: #68d69a;
+  --color-theme-7: #90e1c1;
+  --color-theme-7-light: #90e1c1;
+  --color-theme-6: #b2ebd1;
+  --color-theme-6-light: #b2ebd1;
+  --color-theme-5: #c9f0db;
+  --color-theme-5-light: #c9f0db;
+  --color-theme-4: #e0f5e9;
+  --color-theme-4-light: #e0f5e9;
+  --color-theme-3: #f1fdf3;
+  --color-theme-3-light: #f1fdf3;
+  --color-theme-2: #f9fdf9;
+  --color-theme-2-light: #f9fdf9;
+  --color-theme-1: #fdfdfd;
+  --color-theme-1-light: #fdfdfd;
+  --color-theme-0: #ffffff;
+  --color-theme-0-light: #ffffff;
 
   --color-text: #444444;
   --color-text-light: #444444;
@@ -56,30 +56,31 @@
   --shadow-minify: 0 2px 2px rgba(150, 150, 150, .1);
   --shadow-box: 0 0 5px rgba(150, 150, 150, .2);
 }
+
 html.dark {
-  --color-theme-light: #166dc9;
-  --color-theme-0-light: #222222;
-  --color-theme-1-light: #444444;
-  --color-theme-2-light: #555555;
-  --color-theme-3-light: #666666;
+  --color-theme-light: #5cb85c; /* 更浅的绿 */
+  --color-theme-0-light: #222222; /* 保持不变 */
+  --color-theme-1-light: #444444; /* 保持不变 */
+  --color-theme-2-light: #555555; /* 保持不变 */
+  --color-theme-3-light: #666666; /* 保持不变 */
 
-  --color-text-9-light: #555555;
-  --color-text-8-light: #555555;
-  --color-text-7-light: #555555;
-  --color-text-6-light: #555555;
-  --color-text-5-light: #555555;
-  --color-text-4-light: #444444;
-  --color-text-3-light: #444444;
-  --color-text-2-light: #444444;
-  --color-text-1-light: #444444;
-  --color-text-0-light: #444444;
+  --color-text-9-light: #555555; /* 保持不变 */
+  --color-text-8-light: #555555; /* 保持不变 */
+  --color-text-7-light: #555555; /* 保持不变 */
+  --color-text-6-light: #555555; /* 保持不变 */
+  --color-text-5-light: #555555; /* 保持不变 */
+  --color-text-4-light: #444444; /* 保持不变 */
+  --color-text-3-light: #444444; /* 保持不变 */
+  --color-text-2-light: #444444; /* 保持不变 */
+  --color-text-1-light: #444444; /* 保持不变 */
+  --color-text-0-light: #444444; /* 保持不变 */
 
-  --color-white-light: #333333;
+  --color-white-light: #333333; /* 保持不变 */
 
-  --color-text-light: #999999;
+  --color-text-light: #999999; /* 保持不变 */
 
-  --shadow-minify: 0 .125em .25em rgba(0, 0, 0, .25);
-  --shadow-box: 0 0 .5em rgba(0, 0, 0, .5);
+  --shadow-minify: 0 .125em .25em rgba(0, 0, 0, .25); /* 保持不变 */
+  --shadow-box: 0 0 .5em rgba(0, 0, 0, .5); /* 保持不变 */
 }
 
 /*
