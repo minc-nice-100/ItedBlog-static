@@ -1614,11 +1614,15 @@ article .content video {
   max-width: 100%;
   border-radius: 5px;
 }
-article .content img{
+article .content img {
+  display: block; /* 将图片设置为块级元素 */
+  margin: 0 auto; /* 上下边距为0，左右边距自动以实现居中 */
   border-radius: 5px;
-  border: 2px solid var(--color-theme); /* 使用主题颜色作为边框 */
+  border: 1px solid var(--color-theme); /* 使用主题颜色作为边框，边框宽度更细 */
   padding: 3px; /* 可选：添加内边距以分离图片和边框 */
 }
+
+
 article .content blockquote {
   padding: 1em;
   background-color: var(--color-text-1-light);
