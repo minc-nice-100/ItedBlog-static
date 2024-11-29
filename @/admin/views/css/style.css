@@ -50,7 +50,7 @@ img {
 body {
     font-size: 14px;
     color: #666;
-    font-family: 'Noto Serif SC','Noto Serif SC ExtraBold','Noto Serif SC Medium','Noto Serif SC Light','Noto Serif SC ExtraLight','Noto Serif SC Black','Noto Serif SC SemiBold'"Microsoft YaHei", "微软雅黑", Helvetica, Tahoma, STXihei, "华文细黑", STHeiti, "Helvetica Neue", Helvetica, Tahoma, "Droid Sans", "wenquanyi micro hei", FreeSans, Arimo, Arial, SimSun, "宋体", Heiti, "黑体", sans-serif;    background: #fff;
+    font-family: 'Noto Serif SC','Noto Serif SC ExtraBold','Noto Serif SC Medium','Noto Serif SC Light','Noto Serif SC ExtraLight','Noto Serif SC Black','Noto Serif SC SemiBold' , "Microsoft YaHei", "微软雅黑", Helvetica, Tahoma, STXihei, "华文细黑", STHeiti, "Helvetica Neue", Helvetica, Tahoma, "Droid Sans", "wenquanyi micro hei", FreeSans, Arimo, Arial, SimSun, "宋体", Heiti, "黑体", sans-serif;    background: #fff;
     text-align: center;
 }
 
