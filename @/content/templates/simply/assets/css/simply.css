@@ -1291,7 +1291,7 @@ article .content pre::before {
 }
 .blogger-statistic > .item .value {
   font-size: 1.5em;
-  font-family: Georgia;
+  font-family: Georgia !important;
 }
 .aside-message-list > .item:not(:first-child) {
   border-top: 1px solid var(--color-text-1-light);

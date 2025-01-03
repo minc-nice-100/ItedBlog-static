@@ -38,7 +38,7 @@
 
 /* @GENERATED-FONT */
 @font-face {
-	font-family: "PrismTreeview";
+	font-family: "PrismTreeview" !important;
 	/**
 	 * This font is generated from the .svg files in the `icons` folder. See the `treeviewIconFont` function in
 	 * `gulpfile.js/index.js` for more information.
@@ -64,7 +64,7 @@
 
 .token.treeview-part .entry-name:before {
 	content: "\ea01";
-	font-family: "PrismTreeview";
+	font-family: "PrismTreeview" !important;
 	font-size: inherit;
 	font-style: normal;
 	-webkit-font-smoothing: antialiased;

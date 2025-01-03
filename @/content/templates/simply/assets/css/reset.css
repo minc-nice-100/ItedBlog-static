@@ -45,7 +45,7 @@ html {
 
 body {
   font-size: 14px;
-  font-family: 'Noto Serif SC','Noto Serif SC ExtraBold','Noto Serif SC Medium','Noto Serif SC Light','Noto Serif SC ExtraLight','Noto Serif SC Black','Noto Serif SC SemiBold' , "Helvetica Neue", Helvetica, PingFang SC, Tahoma, Arial, sans-serif;
+  font-family: 'Noto Serif SC','Noto Serif SC ExtraBold','Noto Serif SC Medium','Noto Serif SC Light','Noto Serif SC ExtraLight','Noto Serif SC Black','Noto Serif SC SemiBold' , "Helvetica Neue", Helvetica, PingFang SC, Tahoma, Arial, sans-serif !important;
   /* 更改字体为Noto Serif SC */
   line-height: 1;
   font-weight: inherit;
@@ -177,7 +177,7 @@ select,
 optgroup,
 textarea {
   margin: 0;
-  font-family: inherit;
+  font-family: inherit !important;
   font-size: inherit;
   line-height: inherit;
 }
