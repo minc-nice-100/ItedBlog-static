@@ -54,7 +54,7 @@ const simplys = {
       }
     }
     darkModeHandler();
-    mediaQuery.addListener(darkModeHandler);
+    mediaQuery.addEventListener('change', darkModeHandler);
 
     localStorage.getItem('dark-mode') && document.querySelector(o.el).classList.add('on');
     // dark mode
