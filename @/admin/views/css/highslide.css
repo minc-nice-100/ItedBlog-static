@@ -3,7 +3,7 @@
 * @version: 5.0.0
 */
 .highslide-container div {
-	font-family: 'Noto Serif SC','Noto Serif SC ExtraBold','Noto Serif SC Medium','Noto Serif SC Light','Noto Serif SC ExtraLight','Noto Serif SC Black','Noto Serif SC SemiBold' , Verdana, Helvetica !important;
+	font-family: 'Noto Serif SC','Noto Serif SC ExtraBold','Noto Serif SC Medium','Noto Serif SC Light','Noto Serif SC ExtraLight','Noto Serif SC Black','Noto Serif SC SemiBold' , Verdana, Helvetica;
 	font-size: 10pt;
 }
 .highslide-container table {
@@ -646,7 +646,7 @@ html>/**/body .highslide-gallery ul img {
     line-height: 18px;
 	padding: 1px 0 1px 18px;
     color: #333;
-	font-family: 'Noto Serif SC','Noto Serif SC ExtraBold','Noto Serif SC Medium','Noto Serif SC Light','Noto Serif SC ExtraLight','Noto Serif SC Black','Noto Serif SC SemiBold' , "Trebuchet MS", Arial, sans-serif !important;
+	font-family: 'Noto Serif SC','Noto Serif SC ExtraBold','Noto Serif SC Medium','Noto Serif SC Light','Noto Serif SC ExtraLight','Noto Serif SC Black','Noto Serif SC SemiBold' , "Trebuchet MS", Arial, sans-serif;
 	font-size: 12px;
 	font-weight: bold;
 	white-space: nowrap;
