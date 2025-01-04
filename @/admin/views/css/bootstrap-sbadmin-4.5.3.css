@@ -48,7 +48,7 @@
 }
 
 html {
-    font-family: 'Noto Serif SC','Noto Serif SC ExtraBold','Noto Serif SC Medium','Noto Serif SC Light','Noto Serif SC ExtraLight','Noto Serif SC Black','Noto Serif SC SemiBold' , sans-serif !important;
+    font-family: 'Noto Serif SC','Noto Serif SC ExtraBold','Noto Serif SC Medium','Noto Serif SC Light','Noto Serif SC ExtraLight','Noto Serif SC Black','Noto Serif SC SemiBold' , sans-serif;
     font-size: 14px;
     line-height: 1.15;
     -webkit-text-size-adjust: 100%;
@@ -61,7 +61,7 @@ article, aside, figcaption, figure, footer, header, hgroup, main, nav, section {
 
 body {
     margin: 0;
-    font-family: 'Noto Serif SC','Noto Serif SC ExtraBold','Noto Serif SC Medium','Noto Serif SC Light','Noto Serif SC ExtraLight','Noto Serif SC Black','Noto Serif SC SemiBold' , "Nunito", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji" !important;
+    font-family: 'Noto Serif SC','Noto Serif SC ExtraBold','Noto Serif SC Medium','Noto Serif SC Light','Noto Serif SC ExtraLight','Noto Serif SC Black','Noto Serif SC SemiBold' , "Nunito", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
     font-size: 1rem;
     font-weight: 400;
     line-height: 1.5;
@@ -184,7 +184,7 @@ pre,
 code,
 kbd,
 samp {
-    font-family: 'Noto Serif SC','Noto Serif SC ExtraBold','Noto Serif SC Medium','Noto Serif SC Light','Noto Serif SC ExtraLight','Noto Serif SC Black','Noto Serif SC SemiBold' , SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace !important;
+    font-family: 'Noto Serif SC','Noto Serif SC ExtraBold','Noto Serif SC Medium','Noto Serif SC Light','Noto Serif SC ExtraLight','Noto Serif SC Black','Noto Serif SC SemiBold' , SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
     font-size: 1em;
 }
 
@@ -246,7 +246,7 @@ select,
 optgroup,
 textarea {
     margin: 0;
-    font-family: 'Noto Serif SC','Noto Serif SC ExtraBold','Noto Serif SC Medium','Noto Serif SC Light','Noto Serif SC ExtraLight','Noto Serif SC Black','Noto Serif SC SemiBold' , inherit !important;
+    font-family: 'Noto Serif SC','Noto Serif SC ExtraBold','Noto Serif SC Medium','Noto Serif SC Light','Noto Serif SC ExtraLight','Noto Serif SC Black','Noto Serif SC SemiBold' , inherit;
     font-size: inherit;
     line-height: inherit;
 }
@@ -6088,7 +6088,7 @@ a.close.disabled {
     z-index: 1070;
     display: block;
     margin: 0;
-    font-family: 'Noto Serif SC','Noto Serif SC ExtraBold','Noto Serif SC Medium','Noto Serif SC Light','Noto Serif SC ExtraLight','Noto Serif SC Black','Noto Serif SC SemiBold' , "Nunito", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji" !important;
+    font-family: 'Noto Serif SC','Noto Serif SC ExtraBold','Noto Serif SC Medium','Noto Serif SC Light','Noto Serif SC ExtraLight','Noto Serif SC Black','Noto Serif SC SemiBold' , "Nunito", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
     font-style: normal;
     font-weight: 400;
     line-height: 1.5;
@@ -6201,7 +6201,7 @@ a.close.disabled {
     z-index: 1060;
     display: block;
     max-width: 276px;
-    font-family: 'Noto Serif SC','Noto Serif SC ExtraBold','Noto Serif SC Medium','Noto Serif SC Light','Noto Serif SC ExtraLight','Noto Serif SC Black','Noto Serif SC SemiBold' , "Nunito", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji" !important;
+    font-family: 'Noto Serif SC','Noto Serif SC ExtraBold','Noto Serif SC Medium','Noto Serif SC Light','Noto Serif SC ExtraLight','Noto Serif SC Black','Noto Serif SC SemiBold' , "Nunito", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
     font-style: normal;
     font-weight: 400;
     line-height: 1.5;
@@ -10231,7 +10231,7 @@ button.bg-dark:focus {
 }
 
 .text-monospace {
-    font-family: "Noto Serif SC Momo", SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace !important !important;
+    font-family: "Noto Serif SC Momo", SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace !important;
 }
 
 .text-justify {
@@ -10929,7 +10929,7 @@ a:focus {
     border: 0;
     font-weight: 900;
     content: '\eab8';
-    font-family: 'IcoFont' !important;
+    font-family: 'IcoFont';
 }
 
 .sidebar .nav-item.dropdown.show .dropdown-toggle::after,
@@ -11214,7 +11214,7 @@ a:focus {
 .sidebar #sidebarToggle::after {
     font-weight: 900;
     content: '\eab5';
-    font-family: 'IcoFont' !important;
+    font-family: 'IcoFont';
     margin-right: 0.1rem;
 }
 
@@ -11233,7 +11233,7 @@ a:focus {
 
 .sidebar.toggled #sidebarToggle::after {
     content: '\eab8';
-    font-family: 'IcoFont' !important;
+    font-family: 'IcoFont';
     margin-left: 0.25rem;
 }
 
@@ -11355,7 +11355,7 @@ a:focus {
         border: 0;
         font-weight: 900;
         content: '\eab2';
-        font-family: 'IcoFont' !important;
+        font-family: 'IcoFont';
     }
 
     .sidebar .nav-item .nav-link[data-toggle="collapse"].collapsed::after {
@@ -11630,7 +11630,7 @@ a:focus {
     line-height: 51px;
     font-weight: 900;
     content: '\eab5';
-    font-family: 'IcoFont' !important;
+    font-family: 'IcoFont';
     color: #d1d3e2;
 }
 
