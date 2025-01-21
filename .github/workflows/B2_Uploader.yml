@@ -17,17 +17,18 @@ jobs:
     # 安装 Backblaze B2 工具
     - name: Install B2 CLI
       run: |
-        curl -O https://f000.backblazeb2.com/file/backblaze-b2/tools/b2-linux
-        chmod +x b2-linux
-        sudo mv b2-linux /usr/local/bin/b2
+        curl -L https://f000.backblazeb2.com/file/backblaze-b2/tools/b2-linux -o b2
+        chmod +x b2
+        sudo mv b2 /usr/local/bin/b2
 
-    # 登录到 B2
+
+    # 使用 B2 工具进行授权
     - name: B2 CLI Authentication
       env:
         B2_ACCOUNT_ID: ${{ secrets.B2_ACCOUNT_ID }}
         B2_ACCOUNT_KEY: ${{ secrets.B2_ACCOUNT_KEY }}
       run: |
-        b2 account $B2_ACCOUNT_ID $B2_ACCOUNT_KEY
+        b2 authorize-account $B2_ACCOUNT_ID $B2_ACCOUNT_KEY
 
     # 上传内容到 B2
     - name: Upload files to B2
