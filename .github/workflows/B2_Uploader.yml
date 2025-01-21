@@ -14,16 +14,31 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v3
 
-    # 全局安装 b2sdk
+    # 升级 pip 并安装 b2sdk
     - name: Install B2 CLI via pip
-      run: pip install b2sdk
+      run: |
+        python3 -m pip install --upgrade pip
+        pip install b2sdk
+        echo "export PATH=\$PATH:~/.local/bin" >> ~/.bashrc
+        source ~/.bashrc
+
+    # 检查是否成功安装
+    - name: Verify B2 CLI Installation
+      run: pip show b2sdk
 
     # 使用 b2 工具进行授权
     - name: B2 CLI Authentication
       env:
         B2_ACCOUNT_ID: ${{ secrets.B2_ACCOUNT_ID }}
         B2_ACCOUNT_KEY: ${{ secrets.B2_ACCOUNT_KEY }}
-      run: b2 authorize-account $B2_ACCOUNT_ID $B2_ACCOUNT_KEY
+      run: |
+        python3 -c "
+        from b2sdk.v2 import InMemoryAccountInfo, B2Api
+        info = InMemoryAccountInfo()
+        b2_api = B2Api(info)
+        b2_api.authorize_account('production', '$B2_ACCOUNT_ID', '$B2_ACCOUNT_KEY')
+        print('B2 authentication successful.')
+        "
 
     # 上传内容到 B2
     - name: Upload files to B2
@@ -32,7 +47,19 @@ jobs:
       run: |
         mkdir upload_dir
         cp -r . upload_dir
-        b2 sync --keepDays 0 --delete upload_dir b2://$B2_BUCKET_NAME
+        python3 -c "
+        from b2sdk.v2 import InMemoryAccountInfo, B2Api
+        import os
+        info = InMemoryAccountInfo()
+        b2_api = B2Api(info)
+        b2_api.authorize_account('production', '$B2_ACCOUNT_ID', '$B2_ACCOUNT_KEY')
+        bucket = b2_api.get_bucket_by_name('$B2_BUCKET_NAME')
+        for root, _, files in os.walk('upload_dir'):
+            for file in files:
+                file_path = os.path.join(root, file)
+                bucket.upload_local_file(file_path, file)
+        print('Upload completed.')
+        "
 
     # 清理临时文件
     - name: Clean up
