@@ -15,49 +15,36 @@ jobs:
       uses: actions/checkout@v3
 
     # 升级 pip 并安装 b2sdk
-    - name: Install B2 CLI via pip
+    - name: Install B2 SDK via pip
       run: |
         python3 -m pip install --upgrade pip
         pip install b2sdk
-        echo "export PATH=\$PATH:~/.local/bin" >> ~/.bashrc
-        source ~/.bashrc
 
-    # 检查是否成功安装
-    - name: Verify B2 CLI Installation
-      run: pip show b2sdk
-
-    # 使用 b2 工具进行授权
-    - name: B2 CLI Authentication
+    # 使用 b2 工具进行授权和上传文件
+    - name: B2 Authentication and Upload
       env:
         B2_ACCOUNT_ID: ${{ secrets.B2_ACCOUNT_ID }}
         B2_ACCOUNT_KEY: ${{ secrets.B2_ACCOUNT_KEY }}
-      run: |
-        python3 -c "
-        from b2sdk.v2 import InMemoryAccountInfo, B2Api
-        info = InMemoryAccountInfo()
-        b2_api = B2Api(info)
-        b2_api.authorize_account('production', '$B2_ACCOUNT_ID', '$B2_ACCOUNT_KEY')
-        print('B2 authentication successful.')
-        "
-
-    # 上传内容到 B2
-    - name: Upload files to B2
-      env:
         B2_BUCKET_NAME: ${{ secrets.B2_BUCKET_NAME }}
       run: |
+        # 创建上传目录并排除自身
         mkdir upload_dir
-        cp -r . upload_dir
+        shopt -s extglob
+        cp -r !(upload_dir) upload_dir/
+
+        # 上传目录内容到 B2 存储桶
         python3 -c "
         from b2sdk.v2 import InMemoryAccountInfo, B2Api
         import os
         info = InMemoryAccountInfo()
         b2_api = B2Api(info)
-        b2_api.authorize_account('production', '$B2_ACCOUNT_ID', '$B2_ACCOUNT_KEY')
-        bucket = b2_api.get_bucket_by_name('$B2_BUCKET_NAME')
+        b2_api.authorize_account('production', os.getenv('B2_ACCOUNT_ID'), os.getenv('B2_ACCOUNT_KEY'))
+        bucket = b2_api.get_bucket_by_name(os.getenv('B2_BUCKET_NAME'))
         for root, _, files in os.walk('upload_dir'):
             for file in files:
                 file_path = os.path.join(root, file)
-                bucket.upload_local_file(file_path, file)
+                relative_path = os.path.relpath(file_path, 'upload_dir')  # 保留相对路径
+                bucket.upload_local_file(local_file=file_path, file_name=relative_path)
         print('Upload completed.')
         "
 
