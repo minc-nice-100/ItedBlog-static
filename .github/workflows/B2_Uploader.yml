@@ -14,32 +14,24 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v3
 
-    # 安装 Backblaze B2 工具
-    - name: Install B2 CLI
-      run: |
-        curl -L https://f000.backblazeb2.com/file/backblaze-b2/tools/b2-linux -o b2
-        chmod +x b2
-        sudo mv b2 /usr/local/bin/b2
+    # 全局安装 b2sdk
+    - name: Install B2 CLI via pip
+      run: pip install b2sdk
 
-
-    # 使用 B2 工具进行授权
+    # 使用 b2 工具进行授权
     - name: B2 CLI Authentication
       env:
         B2_ACCOUNT_ID: ${{ secrets.B2_ACCOUNT_ID }}
         B2_ACCOUNT_KEY: ${{ secrets.B2_ACCOUNT_KEY }}
-      run: |
-        b2 authorize-account $B2_ACCOUNT_ID $B2_ACCOUNT_KEY
+      run: b2 authorize-account $B2_ACCOUNT_ID $B2_ACCOUNT_KEY
 
     # 上传内容到 B2
     - name: Upload files to B2
       env:
         B2_BUCKET_NAME: ${{ secrets.B2_BUCKET_NAME }}
       run: |
-        # 创建临时上传目录
         mkdir upload_dir
         cp -r . upload_dir
-
-        # 上传到指定的 B2 bucket
         b2 sync --keepDays 0 --delete upload_dir b2://$B2_BUCKET_NAME
 
     # 清理临时文件
