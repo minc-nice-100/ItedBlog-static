@@ -27,7 +27,7 @@ jobs:
         B2_ACCOUNT_ID: ${{ secrets.B2_ACCOUNT_ID }}
         B2_ACCOUNT_KEY: ${{ secrets.B2_ACCOUNT_KEY }}
       run: |
-        b2 authorize-account $B2_ACCOUNT_ID $B2_ACCOUNT_KEY
+        b2 account $B2_ACCOUNT_ID $B2_ACCOUNT_KEY
 
     # 上传内容到 B2
     - name: Upload files to B2
@@ -39,7 +39,7 @@ jobs:
         cp -r . upload_dir
 
         # 上传到指定的 B2 bucket
-        b2 sync --keepDays 30 --delete upload_dir b2://$B2_BUCKET_NAME
+        b2 sync --keepDays 0 --delete upload_dir b2://$B2_BUCKET_NAME
 
     # 清理临时文件
     - name: Clean up
