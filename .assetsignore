@@ -1,5 +1,6 @@
 # 忽略Git相关文件
 .git/**
+.github/**
 .gitignore
 .gitmodules
 .gitattributes
