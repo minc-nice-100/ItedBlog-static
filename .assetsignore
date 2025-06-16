@@ -18,3 +18,9 @@ node_modules/**
 # 忽略开发配置文件
 .env
 .env.local
+
+# 忽略IDE相关文件
+.idea/**
+.vscode/**
+
+CNAME
