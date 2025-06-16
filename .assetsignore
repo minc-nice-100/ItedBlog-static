@@ -1,0 +1,19 @@
+# 忽略Git相关文件
+.git/**
+.gitignore
+.gitmodules
+.gitattributes
+
+# 忽略node模块
+node_modules/**
+
+# 忽略日志和临时文件
+*.log
+*.tmp
+*.pack
+
+
+
+# 忽略开发配置文件
+.env
+.env.local
