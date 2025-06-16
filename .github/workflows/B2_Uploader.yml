@@ -14,65 +14,42 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v3
 
-    # 升级 pip 并安装 b2sdk
-    - name: Install B2 SDK via pip
+    # 安装 B2 CLI
+    - name: Install B2 CLI via pip
       run: |
-        echo "Upgrading pip and installing b2sdk..."
+        echo "Installing B2 Command Line Tool..."
         python3 -m pip install --upgrade pip
-        pip install b2sdk
-        echo "b2sdk installed successfully."
+        pip install b2
+        echo "B2 CLI installed successfully."
 
-    # 使用 b2 工具进行授权和上传文件
-    - name: B2 Authentication and Upload
+    # 准备上传目录
+    - name: Prepare upload directory
+      run: |
+        echo "Creating upload directory..."
+        mkdir upload_dir
+        echo "Copying files (excluding upload_dir itself)..."
+        shopt -s extglob
+        cp -r !(upload_dir) upload_dir/
+        echo "Files copied to upload_dir."
+
+    # 使用 B2 CLI 进行授权和差异同步
+    - name: B2 Sync with Differential Upload
       env:
         B2_ACCOUNT_ID: ${{ secrets.B2_ACCOUNT_ID }}
         B2_ACCOUNT_KEY: ${{ secrets.B2_ACCOUNT_KEY }}
         B2_BUCKET_NAME: ${{ secrets.B2_BUCKET_NAME }}
       run: |
-        # 打印初始状态
-        echo "Starting B2 authentication and file upload..."
-
-        # 创建上传目录并排除自身
-        mkdir upload_dir
-        echo "Created upload directory: upload_dir."
+        echo "Authenticating with B2..."
+        b2 authorize-account $B2_ACCOUNT_ID $B2_ACCOUNT_KEY
         
-        echo "Copying files into upload directory..."
-        shopt -s extglob
-        cp -r !(upload_dir) upload_dir/
-        echo "Files copied successfully to upload_dir."
-
-        # 上传目录内容到 B2 存储桶
-        echo "Starting upload to B2 bucket: $B2_BUCKET_NAME..."
-        python3 -c "
-        import os
-        from b2sdk.v2 import InMemoryAccountInfo, B2Api
-
-        # 初始化 B2 API 并进行授权
-        info = InMemoryAccountInfo()
-        b2_api = B2Api(info)
-        b2_api.authorize_account('production', os.getenv('B2_ACCOUNT_ID'), os.getenv('B2_ACCOUNT_KEY'))
-        print('B2 authentication successful.')
-
-        # 获取存储桶
-        bucket_name = os.getenv('B2_BUCKET_NAME')
-        bucket = b2_api.get_bucket_by_name(bucket_name)
-        print(f'Connected to bucket: {bucket_name}')
-
-        # 遍历目录并上传文件
-        for root, _, files in os.walk('upload_dir'):
-            for file in files:
-                file_path = os.path.join(root, file)
-                relative_path = os.path.relpath(file_path, 'upload_dir')
-                print(f'Uploading file: {relative_path}...')
-                bucket.upload_local_file(local_file=file_path, file_name=relative_path)
-                print(f'Uploaded file: {relative_path}')
-        print('All files uploaded successfully.')
-        "
-        echo "Upload completed."
+        echo "Starting differential sync..."
+        b2 sync upload_dir/ b2://$B2_BUCKET_NAME/ 
+        
+        echo "Sync completed. Only changed files were uploaded."
 
     # 清理临时文件
     - name: Clean up
       run: |
-        echo "Cleaning up temporary files..."
+        echo "Removing upload directory..."
         rm -rf upload_dir
-        echo "Clean up completed."
+        echo "Cleanup completed."
