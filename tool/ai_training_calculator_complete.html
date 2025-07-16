@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <title>AI训练与运行估算工具（完整功能版）</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+      background: #f9f9f9;
+      padding: 30px;
+      color: #333;
+    }
+    h2, h3 {
+      color: #2c3e50;
+    }
+    label {
+      display: inline-block;
+      margin: 6px 10px 6px 0;
+    }
+    input, select {
+      padding: 6px;
+      margin-right: 10px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+    }
+    button {
+      background-color: #3498db;
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+    button:hover {
+      background-color: #2980b9;
+    }
+    .section {
+      background: #fff;
+      padding: 20px;
+      margin-top: 30px;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+  </style>
+</head>
+<body>
+  <h2>AI训练与运行估算工具（完整功能版）</h2>
+
+  <div class="section">
+    <h3>模型与参数设定</h3>
+    <label>模型类型：
+      <select id="modelType">
+        <option value="dense">Dense Transformer</option>
+        <option value="sparse">Sparse Mixture-of-Experts</option>
+        <option value="embedding">Embedding-only</option>
+      </select>
+    </label>
+    <label>模型参数量（B）：<input type="number" id="paramsB" value="7"></label>
+    <label>FP16空间 ≈ <span id="fp16Size">-</span> GB</label>
+    <br>
+    <button onclick="calcModelSize()">计算模型存储</button>
+  </div>
+
+  <div class="section">
+    <h3>训练与样本估算</h3>
+    <label>训练总步数：<input type="number" id="trainSteps" value="100000"></label>
+    <label>Batch Size：<input type="number" id="trainBatch" value="2048"></label>
+    <label>总样本数 ≈ <span id="trainSamples">-</span></label>
+    <br>
+    <button onclick="calcTrainSamples()">估算样本总数</button>
+  </div>
+
+  <div class="section">
+    <h3>Token ↔ 字符数换算</h3>
+    <label>字符数：<input type="number" id="charCount" value="1000"></label>
+    <label>平均每Token字符数：<input type="number" id="tokenCharAvg" step="0.1" value="3.5"></label>
+    <label>≈ Token 数：<span id="tokenCount">-</span></label><br>
+    <label>Token数：<input type="number" id="tokenInput" value="1000"></label>
+    <label>≈ 字符数：<span id="charOut">-</span></label>
+    <br>
+    <button onclick="convertTokens()">换算</button>
+  </div>
+
+  <div class="section">
+    <h3>运行性能需求</h3>
+    <label>每次推理 FLOPs：<input type="number" id="inferFlops" value="0.2"></label>
+    <label>QPS：<input type="number" id="qps" value="50"></label>
+    <label>并发数：<input type="number" id="concurrent" value="10"></label><br>
+    <label>可用算力（TFLOPs）：<input type="number" id="availTFLOP" value="100"></label>
+    <label>运行结果：<span id="inferResult">-</span></label>
+    <br>
+    <button onclick="calcInference()">估算推理可行性</button>
+  </div>
+
+  <div class="section">
+    <h3>Token成本、FLOPs与能耗估算</h3>
+    <label>总Token（百万）：<input type="number" id="totalTokenM" value="1000"></label>
+    <label>单价（$/百万Token）：<input type="number" id="pricePerM" value="0.003"></label>
+    <label>成本 ≈ <span id="tokenCost">-</span> 美元</label><br>
+    <label>训练Token量（B）：<input type="number" id="trainTokensB" value="100"></label>
+    <label>FLOPs/token：<input type="number" id="flopPerToken" value="350"></label>
+    <label>总FLOPs ≈ <span id="totalFLOPs">-</span> PFLOPs</label><br>
+    <label>瓦特/TFLOP：<input type="number" step="0.01" id="wattPerTflop" value="0.01"></label>
+    <label>能耗 ≈ <span id="energyKwh">-</span> kWh</label>
+    <br>
+    <button onclick="calcCostEnergy()">计算成本与能耗</button>
+  </div>
+
+  <script>
+    function calcModelSize() {
+      const b = Number(document.getElementById('paramsB').value);
+      const type = document.getElementById('modelType').value;
+      const multiplier = (type === 'dense') ? 2 : (type === 'sparse' ? 1 : 0.25);
+      document.getElementById('fp16Size').innerText = (b * multiplier).toFixed(2);
+    }
+    function calcTrainSamples() {
+      const steps = Number(document.getElementById('trainSteps').value);
+      const bs = Number(document.getElementById('trainBatch').value);
+      document.getElementById('trainSamples').innerText = (steps * bs).toLocaleString();
+    }
+    function convertTokens() {
+      const chars = Number(document.getElementById('charCount').value);
+      const avg = Number(document.getElementById('tokenCharAvg').value);
+      document.getElementById('tokenCount').innerText = Math.round(chars / avg);
+      const tokens = Number(document.getElementById('tokenInput').value);
+      document.getElementById('charOut').innerText = Math.round(tokens * avg);
+    }
+    function calcInference() {
+      const flop = Number(document.getElementById('inferFlops').value);
+      const qps = Number(document.getElementById('qps').value);
+      const conc = Number(document.getElementById('concurrent').value);
+      const total = flop * qps * conc;
+      const avail = Number(document.getElementById('availTFLOP').value);
+      document.getElementById('inferResult').innerText = (total <= avail ? '✅ 可运行' : '❌ 不足');
+    }
+    function calcCostEnergy() {
+      const tokens = Number(document.getElementById('totalTokenM').value);
+      const price = Number(document.getElementById('pricePerM').value);
+      document.getElementById('tokenCost').innerText = (tokens * price).toFixed(2);
+      const flopTok = Number(document.getElementById('flopPerToken').value);
+      const trainTokens = Number(document.getElementById('trainTokensB').value);
+      const totalFlop = trainTokens * 1e9 * flopTok;
+      document.getElementById('totalFLOPs').innerText = (totalFlop / 1e15).toFixed(2);
+      const watt = Number(document.getElementById('wattPerTflop').value);
+      const energy = (totalFlop / 1e12) * watt;
+      document.getElementById('energyKwh').innerText = energy.toFixed(2);
+    }
+  </script>
+</body>
+</html>
