@@ -1,41 +1,35 @@
 #!/bin/bash
-set -eo pipefail
+# Change to script directory
+cd "$(dirname "$0")" || exit 1
 
-INSTALL_PKG_URL="https://static.itedev.com/files/af-fast-install/package.tar.gz"
-TARGET_DIR="package"
-
-# Clean up old files
-cleanup() {
-    echo "Cleaning up temporary files..."
-    rm -rf package.tar.gz "$TARGET_DIR"
-}
-trap cleanup EXIT
+# Check root privileges
+if [ "$(id -u)" -ne 0 ]; then
+    echo "Error: This script must be run as root"
+    exit 1
+fi
 
 # Download installation package
-echo "Downloading installation package..."
-if ! wget -q --show-progress "$INSTALL_PKG_URL"; then
-    echo "Error: Failed to download the installation package"
+if ! wget -q --show-progress https://static.itedev.com/files/af-fast-install/package.tar.gz; then
+    echo "Error: Failed to download package"
     exit 1
 fi
 
-# Extract package
-echo "Extracting files..."
-if ! tar -zxvf package.tar.gz -C "$TARGET_DIR"; then
-    echo "Error: Extraction failed"
+# Create and extract package
+mkdir -p package && tar -zxf package.tar.gz -C package/ || {
+    echo "Error: Failed to extract package"
     exit 1
-fi
+}
 
-# Enter installation directory
-cd "$TARGET_DIR" || exit 1
+# Execute installation scripts
+(
+    cd package || exit 1
+    chmod -v +x installer/*
+    ./installer/easytier.sh && ./installer/dependence.sh
+) || exit 1
 
-# Set execution permissions
-echo "Setting permissions..."
-find installer/ -type f -name "*.sh" -exec chmod +x {} +
+# Cleanup with confirmation
+echo "Cleaning temporary files..."
+rm -rf package/ package.tar.gz && echo "Cleanup completed"
 
-# Execute installation
-echo "Installing dependencies..."
-./installer/dependence.sh
-echo "Installing easytier..."
-./installer/easytier.sh
-
-echo "Installation completed successfully!"
+echo "Installation finished successfully"
+exit 0
