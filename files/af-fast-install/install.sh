@@ -20,7 +20,7 @@ fi
 
 # Extract package
 echo "Extracting files..."
-if ! tar -zxvf package.tar.gz; then
+if ! tar -zxvf package.tar.gz -C "$TARGET_DIR"; then
     echo "Error: Extraction failed"
     exit 1
 fi
