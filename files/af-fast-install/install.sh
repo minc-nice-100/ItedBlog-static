@@ -4,6 +4,16 @@ set -eo pipefail
 INSTALL_PKG_URL="https://static.itedev.com/files/af-fast-install/package.tar.gz"
 TARGET_DIR="package"
 
+# Check if root
+if [ "$EUID" -ne 0 ]; then
+    echo "This script must be run as root"
+    exit 1
+fi
+
+# Preparation
+echo "Preparing for installation..."
+mkdir -p /opt/itedev-info/
+
 # Clean up old files
 cleanup() {
     echo "Cleaning up temporary files..."
@@ -39,5 +49,9 @@ echo "Installing easytier..."
 ./installer/easytier.sh
 echo "Installing ddns-go..."
 ./installer/ddns-go.sh
+
+# Clean up installation package
+echo "Cleaning up installation package..."
+rm -rf package.tar.gz "$TARGET_DIR"
 
 echo "Installation completed successfully!"
