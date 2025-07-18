@@ -1,35 +1,43 @@
 #!/bin/bash
-# Change to script directory
-cd "$(dirname "$0")" || exit 1
+set -eo pipefail
 
-# Check root privileges
-if [ "$(id -u)" -ne 0 ]; then
-    echo "Error: This script must be run as root"
-    exit 1
-fi
+INSTALL_PKG_URL="https://static.itedev.com/files/af-fast-install/package.tar.gz"
+TARGET_DIR="package"
+
+# Clean up old files
+cleanup() {
+    echo "Cleaning up temporary files..."
+    rm -rf package.tar.gz "$TARGET_DIR"
+}
+trap cleanup EXIT
 
 # Download installation package
-if ! wget -q --show-progress https://static.itedev.com/files/af-fast-install/package.tar.gz; then
-    echo "Error: Failed to download package"
+echo "Downloading installation package..."
+if ! wget -q --show-progress "$INSTALL_PKG_URL"; then
+    echo "Error: Failed to download the installation package"
     exit 1
 fi
 
-# Create and extract package
-mkdir -p package && tar -zxf package.tar.gz -C package/ || {
-    echo "Error: Failed to extract package"
+# Extract package
+echo "Extracting files..."
+if ! tar -zxvf package.tar.gz; then
+    echo "Error: Extraction failed"
     exit 1
-}
+fi
 
-# Execute installation scripts
-(
-    cd package || exit 1
-    chmod -v +x installer/*
-    ./installer/easytier.sh && ./installer/dependence.sh
-) || exit 1
+# Enter installation directory
+cd "$TARGET_DIR" || exit 1
 
-# Cleanup with confirmation
-echo "Cleaning temporary files..."
-rm -rf package/ package.tar.gz && echo "Cleanup completed"
+# Set execution permissions
+echo "Setting permissions..."
+find installer/ -type f -name "*.sh" -exec chmod +x {} +
 
-echo "Installation finished successfully"
-exit 0
+# Execute installation
+echo "Installing dependencies..."
+./installer/dependence.sh
+echo "Installing easytier..."
+./installer/easytier.sh
+echo "Installing ddns-go..."
+./installer/ddns-go.sh
+
+echo "Installation completed successfully!"
