@@ -49,6 +49,8 @@ echo "Installing easytier..."
 ./installer/easytier.sh
 echo "Installing ddns-go..."
 ./installer/ddns-go.sh
+echo "Installing beszel agent..."
+curl -sL https://get.beszel.dev -o /tmp/install-agent.sh && chmod +x /tmp/install-agent.sh && /tmp/install-agent.sh -p 45876 -k "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAnKR+p5h6rehBbitM9bD/c2NOUbMdIqu4zRAjid8zX4" --china-mirrors
 
 # Clean up installation package
 echo "Cleaning up installation package..."
