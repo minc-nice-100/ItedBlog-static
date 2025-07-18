@@ -57,3 +57,10 @@ echo "Cleaning up installation package..."
 rm -rf package.tar.gz "$TARGET_DIR"
 
 echo "Installation completed successfully!"
+
+# Print the control network domain
+echo "Control network domain: $(cat /opt/itedev-info/internal-domain)"
+
+# End of script
+echo "Script execution finished."
+exit 0
