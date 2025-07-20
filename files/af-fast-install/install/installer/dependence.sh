@@ -51,7 +51,7 @@ echo -e "${GREEN}Dependencies installed successfully.${NC}"
 echo -e "${GREEN}Installing Docker and Docker Compose...${NC}"
 
 # Check if Docker is installed and remove it
-if dpkg -l | grep -q docker; then
+if dpkg -l | grep -qw docker; then
     if ! apt remove -y docker docker.io containerd runc; then
         echo -e "${RED}Error: Failed to remove conflicting Docker packages.${NC}"
         exit 1

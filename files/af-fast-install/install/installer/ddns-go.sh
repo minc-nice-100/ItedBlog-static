@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # DDNS-GO
-set -eu pipefail
+set -eo pipefail
 
 # Run as root
 if [ "$EUID" -ne 0 ]; then
@@ -73,7 +73,7 @@ echo "Creating INFO file at /opt/itedev-info/internal-domain"
 cat > /opt/itedev-info/internal-domain << EOF
 $(cat /etc/machine-id).control-network.internal.itedev.com
 EOF
-# set ro permissions
+# Set permissions
 chmod 444 /opt/itedev-info/internal-domain
 
 # Success message
