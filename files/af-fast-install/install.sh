@@ -17,7 +17,7 @@ mkdir -p /opt/itedev-info/
 # Clean up old files
 cleanup() {
     echo "Cleaning up temporary files..."
-    rm -rf package.tar.gz "$TARGET_DIR"
+    rm -rf package.tar.gz "$TARGET_DIR" 2>/dev/null || true
 }
 trap cleanup EXIT
 
