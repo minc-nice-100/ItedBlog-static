@@ -3,6 +3,7 @@ set -eo pipefail
 
 INSTALL_PKG_URL="https://static.itedev.com/files/af-fast-install/package.tar.gz"
 TARGET_DIR="package"
+INFO_DIR="/opt/itedev-info/"
 
 # Check if root
 if [ "$EUID" -ne 0 ]; then
@@ -10,9 +11,11 @@ if [ "$EUID" -ne 0 ]; then
     exit 1
 fi
 
-# Preparation
-echo "Preparing for installation..."
-mkdir -p /opt/itedev-info/
+# Create info directory if it doesn't exist
+if [ ! -d "$INFO_DIR" ]; then
+    echo "Creating info directory at $INFO_DIR"
+    mkdir -p "$INFO_DIR"
+fi
 
 # Clean up old files
 cleanup() {
@@ -30,6 +33,7 @@ fi
 
 # Extract package
 echo "Extracting files..."
+mkdir -p "$TARGET_DIR"
 if ! tar -zxvf package.tar.gz -C "$TARGET_DIR"; then
     echo "Error: Extraction failed"
     exit 1
@@ -54,7 +58,7 @@ curl -sL https://get.beszel.dev -o /tmp/install-agent.sh && chmod +x /tmp/instal
 
 # Clean up installation package
 echo "Cleaning up installation package..."
-rm -rf package.tar.gz "$TARGET_DIR"
+cleanup
 
 echo "Installation completed successfully!"
 
