@@ -76,19 +76,21 @@ echo -e "${GREEN}Docker and Docker Compose installed and started successfully.${
 
 # Configure Docker registry mirror and log rotation
 echo -e "${GREEN}Configuring Docker registry mirror and log rotation...${NC}"
-if ping -c 1 -W 1 google.com &> /dev/null; then
+
+# Check if Google is reachable
+if ping -c 1 -W 1 google.com >/dev/null 2>&1; then
     echo -e "${YELLOW}Google is reachable, skipping Docker registry mirror configuration.${NC}"
 else
     echo -e "${GREEN}Configuring Docker registry mirror...${NC}"
-    mkdir -p /etc/docker || {
+    
+    # Create docker directory
+    if ! mkdir -p /etc/docker; then
         echo -e "${RED}Error: Failed to create /etc/docker directory.${NC}"
         exit 1
-    }
+    fi
 
-    cat > /etc/docker/daemon.json << EOF || {
-        echo -e "${RED}Error: Failed to create daemon.json file.${NC}"
-        exit 1
-    }
+    # Create daemon.json file
+    cat > /etc/docker/daemon.json <<'EOF'
 {
   "registry-mirrors": ["https://docker.m.daocloud.io"],
   "log-driver": "json-file",
@@ -98,6 +100,12 @@ else
   }
 }
 EOF
+
+    # Verify file creation
+    if [ ! -f /etc/docker/daemon.json ]; then
+        echo -e "${RED}Error: Failed to create daemon.json file.${NC}"
+        exit 1
+    fi
 
     # Restart Docker service
     if ! systemctl daemon-reload; then
@@ -128,5 +136,7 @@ if ! docker run -d \
 fi
 
 echo -e "${GREEN}Portainer agent running on port 12512.${NC}"
-
 echo -e "${GREEN}All dependencies have been installed successfully.${NC}"
+
+# Cleanup temporary files
+echo -e "${GREEN}Cleaning up temporary files...${NC}"
