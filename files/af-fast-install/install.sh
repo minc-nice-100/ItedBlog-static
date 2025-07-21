@@ -22,18 +22,61 @@ if [ ! -d "$INFO_DIR" ]; then
     mkdir -p "$INFO_DIR"
 fi
 
-# Define a cleanup function to remove temporary files
+# Define a comprehensive cleanup function to remove temporary files
 cleanup() {
+    local exit_code=$?
     echo "Cleaning up temporary files..."
-    rm -rf package.tar.gz "$TARGET_DIR" 2>/dev/null || true
+    
+    # Remove downloaded package
+    if [ -f "package.tar.gz" ]; then
+        echo "Removing package.tar.gz..."
+        rm -f package.tar.gz 2>/dev/null || true
+    fi
+    
+    # Remove extracted directory
+    if [ -d "$TARGET_DIR" ]; then
+        echo "Removing $TARGET_DIR directory..."
+        rm -rf "$TARGET_DIR" 2>/dev/null || true
+    fi
+    
+    # Remove temporary beszel agent installation script
+    if [ -f "/tmp/install-agent.sh" ]; then
+        echo "Removing temporary beszel agent script..."
+        rm -f /tmp/install-agent.sh 2>/dev/null || true
+    fi
+    
+    # Clean up any other temporary files that might have been created
+    echo "Cleaning up other temporary files..."
+    rm -f /tmp/beszel-* 2>/dev/null || true
+    rm -f /tmp/easytier-* 2>/dev/null || true
+    rm -f /tmp/ddns-go-* 2>/dev/null || true
+    
+    # If exit code is not 0, it means the script exited due to an error
+    if [ $exit_code -ne 0 ]; then
+        echo "Script exited with error code $exit_code. Cleanup completed."
+    else
+        echo "Cleanup completed successfully."
+    fi
 }
-# Set the cleanup function to be called when the script exits
+
+# Set the cleanup function to be called when the script exits for any reason
+# This includes normal exit, errors, interrupts (Ctrl+C), and other signals
 trap cleanup EXIT
+trap cleanup INT
+trap cleanup TERM
+trap cleanup HUP
+trap cleanup QUIT
 
 # Download the installation package from the defined URL
 echo "Downloading installation package..."
 if ! wget -q --show-progress "$INSTALL_PKG_URL"; then
     echo "Error: Failed to download the installation package"
+    exit 1
+fi
+
+# Verify the downloaded file exists and is not empty
+if [ ! -s "package.tar.gz" ]; then
+    echo "Error: Downloaded package is empty or corrupted"
     exit 1
 fi
 
@@ -45,35 +88,73 @@ if ! tar -zxvf package.tar.gz -C "$TARGET_DIR"; then
     exit 1
 fi
 
+# Verify extraction was successful
+if [ ! -d "$TARGET_DIR/installer" ]; then
+    echo "Error: Extraction incomplete - installer directory not found"
+    exit 1
+fi
+
 # Change the current directory to the target directory
-cd "$TARGET_DIR" || exit 1
+cd "$TARGET_DIR" || {
+    echo "Error: Failed to change to target directory"
+    exit 1
+}
 
 # Set execution permissions for all shell scripts in the installer directory
 echo "Setting permissions..."
-find installer/ -type f -name "*.sh" -exec chmod +x {} +
+if ! find installer/ -type f -name "*.sh" -exec chmod +x {} +; then
+    echo "Error: Failed to set permissions for installer scripts"
+    exit 1
+fi
 
-# Execute the installation scripts
+# Execute the installation scripts with error handling
 echo "Installing dependencies..."
-./installer/dependence.sh
-echo "Installing easytier..."
-./installer/easytier.sh
-echo "Installing ddns-go..."
-./installer/ddns-go.sh
-echo "Installing beszel agent..."
-# Download and execute the beszel agent installation script
-curl -sL https://get.beszel.dev -o /tmp/install-agent.sh && chmod +x /tmp/install-agent.sh && /tmp/install-agent.sh -p 45876 -k "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAnKR+p5h6rehBbitM9bD/c2NOUbMdIqu4zRAjid8zX4" --china-mirrors
+if ! ./installer/dependence.sh; then
+    echo "Error: Dependencies installation failed"
+    exit 1
+fi
 
-# Clean up the installation package
-echo "Cleaning up installation package..."
-cleanup
+echo "Installing easytier..."
+if ! ./installer/easytier.sh; then
+    echo "Error: Easytier installation failed"
+    exit 1
+fi
+
+echo "Installing ddns-go..."
+if ! ./installer/ddns-go.sh; then
+    echo "Error: DDNS-GO installation failed"
+    exit 1
+fi
+
+echo "Installing beszel agent..."
+# Download and execute the beszel agent installation script with error handling
+if ! curl -sL https://get.beszel.dev -o /tmp/install-agent.sh; then
+    echo "Error: Failed to download beszel agent installation script"
+    exit 1
+fi
+
+if ! chmod +x /tmp/install-agent.sh; then
+    echo "Error: Failed to set permissions for beszel agent script"
+    exit 1
+fi
+
+if ! /tmp/install-agent.sh -p 45876 -k "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAnKR+p5h6rehBbitM9bD/c2NOUbMdIqu4zRAjid8zX4" --china-mirrors; then
+    echo "Error: Beszel agent installation failed"
+    exit 1
+fi
 
 # Indicate that the installation has completed successfully
 echo "Installation completed successfully!"
 
-# Print the control network domain from the info directory
-echo "Control network domain: $(cat /opt/itedev-info/internal-domain)"
+# Print the control network domain from the info directory if it exists
+if [ -f "/opt/itedev-info/internal-domain" ]; then
+    echo "Control network domain: $(cat /opt/itedev-info/internal-domain)"
+else
+    echo "Warning: Control network domain file not found"
+fi
 
 # Indicate that the script execution has finished
 echo "Script execution finished."
-exit 0
 
+# Exit with success code (cleanup will be called automatically due to trap)
+exit 0
