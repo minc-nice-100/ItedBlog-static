@@ -49,18 +49,10 @@ dnsconf:
         domains:
             - ""
       dns:
-        name: dnspod
+        name: cloudflare
         id: "584970"
-        secret: 4c66054ff9d531f437cde2b2bd1d6e12
-      ttl: ""
-user:
-    username: root
-    password: \$2a\$10\$Q0FwHhhx.xgVlVsiZujOk.cLpcDXemJS1An8X5XaXbEqoJhSzBoV2
-webhook:
-    webhookurl: ""
-    webhookrequestbody: ""
-    webhookheaders: ""
-notallowwanaccess: true
+        secret: GL3_p-5nBKmqXSfejf3_8pOzI4dHVT2eFj9teUNn
+      ttl: "60"
 lang: zh
 EOF
 
