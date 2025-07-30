@@ -34,20 +34,9 @@ dnsconf:
       ipv4:
         enable: true
         gettype: netInterface
-        url: https://myip.ipip.net, https://ddns.oray.com/checkip, https://ip.3322.net, https://4.ipw.cn, https://v4.yinghualuo.cn/bejson
-        netinterface: tun0
-        cmd: ""
+        netinterface: ItedInternalNetwork
         domains:
-            - $(cat /etc/machine-id):control-network.internal.itedev.com
-      ipv6:
-        enable: false
-        gettype: netInterface
-        url: https://speed.neu6.edu.cn/getIP.php, https://v6.ident.me, https://6.ipw.cn, https://v6.yinghualuo.cn/bejson
-        netinterface: bond0
-        cmd: ""
-        ipv6reg: ""
-        domains:
-            - ""
+            - $(cat /etc/machine-id).control-network.internal:itedev.com
       dns:
         name: cloudflare
         id: "584970"

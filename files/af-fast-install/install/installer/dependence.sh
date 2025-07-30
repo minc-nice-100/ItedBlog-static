@@ -97,10 +97,7 @@ create_config_with_mirrors() {
   "log-opts": {
     "max-size": "100m",
     "max-file": "3"
-  },
-  "storage-driver": "overlay2",
-  "max-concurrent-downloads": 10,
-  "max-concurrent-uploads": 5
+  }
 }
 EOF
 }
