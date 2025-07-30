@@ -34,7 +34,7 @@ dnsconf:
       ipv4:
         enable: true
         gettype: netInterface
-        netinterface: ItedInternalNetwork
+        netinterface: tun114514
         domains:
             - $(cat /etc/machine-id).control-network.internal:itedev.com
       dns:

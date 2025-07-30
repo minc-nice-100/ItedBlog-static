@@ -26,7 +26,7 @@ network_secret = "aX9tA6dY8aX7yK7iI1mT2hB4aD7gV8jZ1gV0eQ8wW3zF2yM5cH4fK2wN4wG4rP
 uri = "tcp://Easytier-public-peer.itedev.com:11010"
 
 [flags]
-dev_name = "ItedInternalNetwork"
+dev_name = "tun114514"
 multi_thread = true
 enable_encryption = true
 enable_ipv6 = true
