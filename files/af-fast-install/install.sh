@@ -16,6 +16,27 @@ if [ "$EUID" -ne 0 ]; then
     exit 1
 fi
 
+# Parse command-line arguments
+TOKEN=""
+while getopts ":t:" opt; do
+  case ${opt} in
+    t )
+      TOKEN="$OPTARG"
+      ;;
+    \? )
+      echo "Usage: $0 [-t target]" >&2
+      exit 1
+      ;;
+  esac
+done
+shift $((OPTIND -1))
+
+if [ -z "$TOKEN" ]; then
+  echo "Error: -t parameter is required"
+  exit 1
+fi
+
+
 # Create the info directory if it does not already exist
 if [ ! -d "$INFO_DIR" ]; then
     echo "Creating info directory at $INFO_DIR"
@@ -138,7 +159,7 @@ if ! chmod +x /tmp/install-agent.sh; then
     exit 1
 fi
 
-if ! /tmp/install-agent.sh -p 45876 -k "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAnKR+p5h6rehBbitM9bD/c2NOUbMdIqu4zRAjid8zX4" --china-mirrors; then
+if ! /tmp/install-agent.sh -p 45876 -k "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAnKR+p5h6rehBbitM9bD/c2NOUbMdIqu4zRAjid8zX4" --china-mirrors --auto-update -url "http://e57ff0a24e7f4813a03786276e59755a.control-network.internal.itedev.com:8090" -t "$TOKEN"; then
     echo "Error: Beszel agent installation failed"
     exit 1
 fi
