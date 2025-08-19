@@ -1,77 +1,80 @@
 #!/bin/bash
 
 # Predefined color codes
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-NC='\033[0m' # No Color
+readonly RED='\033[0;31m'
+readonly GREEN='\033[0;32m'
+readonly YELLOW='\033[1;33m'
+readonly NC='\033[0m' # No Color
+
+# Constants
+readonly REQUIRED_SPACE=100
+readonly INSTALL_DIR="/opt/easytier"
+readonly CONFIG_FILE="${INSTALL_DIR}/config/config.yaml"
+readonly SERVICE_NAME="easytier"
+readonly UPGRADER_SCRIPT="${INSTALL_DIR}/upgrader.sh"
 
 # Get the absolute path of the script
-script_dir=$(dirname "$(readlink -f "$0")")
+readonly SCRIPT_DIR=$(dirname "$(readlink -f "$0")")
+
+# Function to print error and exit
+error_exit() {
+    echo -e "${RED}Error: $1${NC}" >&2
+    exit 1
+}
+
+# Function to print status message
+print_status() {
+    echo -e "${YELLOW}$1...${NC}"
+}
+
+# Function to print success message
+print_success() {
+    echo -e "${GREEN}$1${NC}"
+}
 
 # Check if the script is run as root
-if [ "$(id -u)" -ne 0 ]; then
-    echo -e "${RED}Error: This script must be run as root. Please use sudo.${NC}"
-    exit 1
-fi
+[ "$(id -u)" -ne 0 ] && error_exit "This script must be run as root. Please use sudo."
 
 # Installation pre-check list
-echo -e "${YELLOW}Performing system environment checks...${NC}"
+print_status "Performing system environment checks"
 
 # Check systemd availability
-if ! command -v systemctl >/dev/null 2>&1; then
-    echo -e "${RED}Error: System does not use systemd as the init system.${NC}"
-    exit 1
-fi
+command -v systemctl >/dev/null 2>&1 || error_exit "System does not use systemd as the init system."
 
 # Check system architecture
-arch=$(uname -m)
-if [ "$arch" != "x86_64" ]; then
-    echo -e "${RED}Error: Current architecture ${arch} is not supported. Only x86_64 architecture is supported.${NC}"
-    exit 1
-fi
+[ "$(uname -m)" != "x86_64" ] && error_exit "Current architecture $(uname -m) is not supported. Only x86_64 architecture is supported."
 
-# Check disk space (at least 100MB)
-required_space=100
-available_space=$(df -m /opt | awk 'NR==2 {print $4}')
-if [ "$available_space" -lt "$required_space" ]; then
-    echo -e "${RED}Error: Insufficient disk space in /opt partition (required ${required_space}MB, available ${available_space}MB).${NC}"
-    exit 1
-fi
+# Check disk space
+available_space=$(df -m "${INSTALL_DIR%/*}" | awk 'NR==2 {print $4}')
+[ "$available_space" -lt "$REQUIRED_SPACE" ] && error_exit "Insufficient disk space in ${INSTALL_DIR%/*} partition (required ${REQUIRED_SPACE}MB, available ${available_space}MB)."
 
 # Installation process starts
-echo -e "${GREEN}Starting installation of EasyTier...${NC}"
+print_success "Starting installation of EasyTier..."
 
 # Create installation directory
-echo "Creating installation directory /opt/easytier"
-if ! mkdir -p /opt/easytier; then
-    echo -e "${RED}Error: Unable to create installation directory.${NC}"
-    exit 1
-fi
+print_status "Creating installation directory ${INSTALL_DIR}"
+mkdir -p "${INSTALL_DIR}" || error_exit "Unable to create installation directory."
 
-# Copy files (with error handling)
-echo "Copying application files..."
-if ! cp -rv "${script_dir}/../easytier"/* /opt/easytier/; then
-    echo -e "${RED}Error: File copy failed. Please check the integrity of the source files.${NC}"
-    exit 1
-fi
+# Copy files
+print_status "Copying application files"
+cp -rv "${SCRIPT_DIR}/../easytier"/* "${INSTALL_DIR}/" || error_exit "File copy failed. Please check the integrity of the source files."
 
 # Set permissions
-echo "Setting file permissions..."
-find /opt/easytier -type f -exec chmod 644 {} \;
-find /opt/easytier -type d -exec chmod 755 {} \;
-chmod +x /opt/easytier/easytier-core
+print_status "Setting file permissions"
+find "${INSTALL_DIR}" -type f -exec chmod 644 {} \;
+find "${INSTALL_DIR}" -type d -exec chmod 755 {} \;
+chmod +x "${INSTALL_DIR}/easytier-core"
+chmod +x "${UPGRADER_SCRIPT}"  # 确保升级脚本有执行权限
 
 # Check configuration file
-config_file="/opt/easytier/config/config.yaml"
-if [ ! -f "$config_file" ]; then
-    echo -e "${RED}Error: Configuration file missing: ${config_file}.${NC}"
-    exit 1
-fi
+[ ! -f "${CONFIG_FILE}" ] && error_exit "Configuration file missing: ${CONFIG_FILE}"
+
+# Check upgrader script
+[ ! -f "${UPGRADER_SCRIPT}" ] && error_exit "Upgrader script missing: ${UPGRADER_SCRIPT}"
 
 # Install system service
-echo "Configuring system service..."
-cat > /etc/systemd/system/easytier.service << EOF
+print_status "Configuring system service"
+cat > "/etc/systemd/system/${SERVICE_NAME}.service" << EOF
 [Unit]
 Description=EasyTier Network Service
 Wants=network-online.target
@@ -80,13 +83,13 @@ StartLimitIntervalSec=0
 
 [Service]
 Type=simple
-WorkingDirectory=/opt/easytier
-ExecStart=/opt/easytier/easytier-core -c $config_file
+WorkingDirectory=${INSTALL_DIR}
+ExecStart=${INSTALL_DIR}/easytier-core -c ${CONFIG_FILE}
 Restart=always
 RestartSec=3
 StandardOutput=syslog
 StandardError=syslog
-SyslogIdentifier=easytier
+SyslogIdentifier=${SERVICE_NAME}
 
 # Security enhancements
 NoNewPrivileges=yes
@@ -98,39 +101,58 @@ WantedBy=multi-user.target
 EOF
 
 # Reload systemd configuration
-if ! systemctl daemon-reload; then
-    echo -e "${RED}Error: systemd configuration reload failed.${NC}"
-    exit 1
-fi
+systemctl daemon-reload || error_exit "systemd configuration reload failed."
 
 # Enable and start service
-echo "Starting system service..."
-if ! systemctl enable --now easytier.service; then
-    echo -e "${RED}Error: Service start failed.${NC}"
-    journalctl -u easytier.service -n 50 --no-pager
-    exit 1
+print_status "Starting system service"
+if ! systemctl enable --now "${SERVICE_NAME}.service"; then
+    error_exit "Service start failed. Check logs: journalctl -u ${SERVICE_NAME}.service -n 50 --no-pager"
 fi
 
 # Verify service status
-echo "Verifying service status..."
+print_status "Verifying service status"
 sleep 2 # Wait for service initialization
-if ! systemctl is-active --quiet easytier.service; then
-    echo -e "${RED}Error: Service is not running properly.${NC}"
-    journalctl -u easytier.service -n 100 --no-pager
-    exit 1
+if ! systemctl is-active --quiet "${SERVICE_NAME}.service"; then
+    error_exit "Service is not running properly. Check logs: journalctl -u ${SERVICE_NAME}.service -n 100 --no-pager"
 fi
 
-# Post-installation checks
-echo -e "${YELLOW}Verifying installation result...${NC}"
-echo "Version information:"
-/opt/easytier/easytier-core --version || {
-    echo -e "${RED}Error: Unable to retrieve version information.${NC}"
-    exit 1
-}
+# Configure auto-upgrade
+print_status "Configuring auto-upgrade"
+cat > "/etc/systemd/system/${SERVICE_NAME}-upgrade.service" << EOF
+[Unit]
+Description=EasyTier 自动更新
 
-echo -e "\n${GREEN}Installation successful! EasyTier service is running.${NC}"
+[Service]
+Type=oneshot
+ExecStart=${UPGRADER_SCRIPT}
+User=root
+Group=root
+EOF
+
+cat > "/etc/systemd/system/${SERVICE_NAME}-upgrade.timer" << EOF
+[Unit]
+Description=每小时检查 EasyTier 更新
+
+[Timer]
+OnBootSec=5min
+OnUnitActiveSec=1h
+Persistent=true
+
+[Install]
+WantedBy=timers.target
+EOF
+
+systemctl daemon-reload || error_exit "Failed to reload systemd configuration for upgrade service"
+systemctl enable --now "${SERVICE_NAME}-upgrade.timer" || error_exit "Failed to enable upgrade timer"
+
+# Post-installation checks
+print_status "Verifying installation result"
+echo "Version information:"
+"${INSTALL_DIR}/easytier-core" --version || error_exit "Unable to retrieve version information."
+
+print_success "\nInstallation successful! EasyTier service is running."
 echo -e "Service management commands:"
-echo -e "  Start service: systemctl start easytier"
-echo -e "  Stop service: systemctl stop easytier"
-echo -e "  Check status: systemctl status easytier"
-echo -e "  View logs: journalctl -u easytier -f"
+echo -e "  Start service: systemctl start ${SERVICE_NAME}"
+echo -e "  Stop service: systemctl stop ${SERVICE_NAME}"
+echo -e "  Check status: systemctl status ${SERVICE_NAME}"
+echo -e "  View logs: journalctl -u ${SERVICE_NAME} -f"
