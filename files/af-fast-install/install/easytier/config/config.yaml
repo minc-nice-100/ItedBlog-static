@@ -35,3 +35,4 @@ enable_kcp_proxy = true
 enable_quic_proxy = true
 private_mode = true
 relay_all_peer_rpc = true
+mtu = 1360
