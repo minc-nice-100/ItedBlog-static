@@ -4,17 +4,14 @@ on:
   push:
     branches:
       - main
-
 jobs:
   upload-to-b2:
     runs-on: ubuntu-latest
 
     steps:
-    # 检出代码库
     - name: Checkout repository
       uses: actions/checkout@v3
 
-    # 安装 B2 CLI
     - name: Install B2 CLI via pip
       run: |
         echo "Installing B2 Command Line Tool..."
@@ -22,7 +19,6 @@ jobs:
         pip install b2
         echo "B2 CLI installed successfully."
 
-    # 准备上传目录
     - name: Prepare upload directory
       run: |
         echo "Creating upload directory..."
@@ -32,7 +28,6 @@ jobs:
         cp -r !(upload_dir) upload_dir/
         echo "Files copied to upload_dir."
 
-    # 使用 B2 CLI 进行授权和差异同步
     - name: B2 Sync with Differential Upload
       env:
         B2_ACCOUNT_ID: ${{ secrets.B2_ACCOUNT_ID }}
@@ -40,16 +35,57 @@ jobs:
         B2_BUCKET_NAME: ${{ secrets.B2_BUCKET_NAME }}
       run: |
         echo "Authenticating with B2..."
-        b2 authorize-account $B2_ACCOUNT_ID $B2_ACCOUNT_KEY
+        # 使用新的 account authorize 命令替代已弃用的 authorize-account
+        b2 account authorize $B2_ACCOUNT_ID $B2_ACCOUNT_KEY
         
         echo "Starting differential sync..."
         b2 sync upload_dir/ b2://$B2_BUCKET_NAME/ 
         
         echo "Sync completed. Only changed files were uploaded."
 
-    # 清理临时文件
+    - name: Configure CORS for B2 Bucket
+      env:
+        B2_ACCOUNT_ID: ${{ secrets.B2_ACCOUNT_ID }}
+        B2_ACCOUNT_KEY: ${{ secrets.B2_ACCOUNT_KEY }}
+        B2_BUCKET_NAME: ${{ secrets.B2_BUCKET_NAME }}
+      run: |
+        echo "Authenticating with B2 for CORS configuration..."
+        # 使用新的 account authorize 命令替代已弃用的 authorize-account
+        b2 account authorize $B2_ACCOUNT_ID $B2_ACCOUNT_KEY
+
+        # 不再使用已弃用的 get-bucket 命令来获取 Bucket ID，因为 update-bucket 命令通常可以直接使用桶名
+        # 创建CORS规则JSON文件
+        cat > cors_rules.json << EOF
+        [
+          {
+            "corsRuleName": "allow-all",
+            "allowedOrigins": ["*"],
+            "allowedHeaders": ["*"],
+            "allowedOperations": [
+              "s3_get",        # S3兼容的获取操作
+              "s3_put",        # S3兼容的上传操作
+              "s3_delete",     # S3兼容的删除操作 :cite[3]
+              "b2_download_file_by_id",
+              "b2_download_file_by_name",
+              "b2_upload_file"
+              # 注意：b2_upload_part 是否包含在你的密钥权限中？根据你的需求添加。
+            ],
+            "maxAgeSeconds": 3600
+          }
+        ]
+        EOF
+
+        # 更新存储桶的CORS规则，使用桶名而非ID
+        b2 update-bucket --corsRules cors_rules.json $B2_BUCKET_NAME allPublic
+        # 如果上述命令因桶名问题失败，可以尝试先获取桶ID，但注意使用新命令：
+        # BUCKET_ID=$(b2 bucket get $B2_BUCKET_NAME --format json | jq -r '.bucketId')
+        # 然后使用 b2 update-bucket --corsRules cors_rules.json $BUCKET_ID allPublic
+
+        echo "CORS rules updated to allow all origins."
+
     - name: Clean up
       run: |
-        echo "Removing upload directory..."
+        echo "Removing upload directory and temporary CORS file..."
         rm -rf upload_dir
+        rm -f cors_rules.json
         echo "Cleanup completed."
