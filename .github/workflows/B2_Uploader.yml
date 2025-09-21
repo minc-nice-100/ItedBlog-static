@@ -62,13 +62,12 @@ jobs:
             "allowedOrigins": ["*"],
             "allowedHeaders": ["*"],
             "allowedOperations": [
-              "s3_get",        # S3兼容的获取操作
-              "s3_put",        # S3兼容的上传操作
-              "s3_delete",     # S3兼容的删除操作 :cite[3]
+              "s3_get",
+              "s3_put",
+              "s3_delete",
               "b2_download_file_by_id",
               "b2_download_file_by_name",
               "b2_upload_file"
-              # 注意：b2_upload_part 是否包含在你的密钥权限中？根据你的需求添加。
             ],
             "maxAgeSeconds": 3600
           }
