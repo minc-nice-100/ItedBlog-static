@@ -76,7 +76,7 @@ jobs:
         EOF
 
         # 更新存储桶的CORS规则，使用桶名而非ID
-        b2 update-bucket --corsRules cors_rules.json $B2_BUCKET_NAME allPublic
+        b2 bucket update --cors-rules "$(<./cors_rules.json)" $B2_BUCKET_NAME allPublic
         # 如果上述命令因桶名问题失败，可以尝试先获取桶ID，但注意使用新命令：
         # BUCKET_ID=$(b2 bucket get $B2_BUCKET_NAME --format json | jq -r '.bucketId')
         # 然后使用 b2 update-bucket --corsRules cors_rules.json $BUCKET_ID allPublic
