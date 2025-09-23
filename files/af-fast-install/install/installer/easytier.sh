@@ -84,7 +84,7 @@ StartLimitIntervalSec=0
 [Service]
 Type=simple
 WorkingDirectory=${INSTALL_DIR}
-ExecStart=${INSTALL_DIR}/easytier-core -c ${CONFIG_FILE}
+ExecStart=${INSTALL_DIR}/easytier-core --config-server wss://easytier-config-server.itedev.com:8443/root --machine-id $(cat /etc/machine-id)
 Restart=always
 RestartSec=3
 StandardOutput=syslog
