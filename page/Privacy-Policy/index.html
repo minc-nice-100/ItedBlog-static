@@ -1,72 +1,163 @@
 <!DOCTYPE html>
-<html lang="en-US">
+<html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Privacy Policy</title>
-  <link rel="stylesheet" type="text/css" href="https://fonts.itedev.com/NotoSerifSC/index.css"> 
+  <title>隐私政策 - itedev.com</title>
+  <link rel="stylesheet" type="text/css" href="https://fonts.itedev.com/NotoSerifSC/index.css">
   <style>
-body {
-  font-family: 'Noto Serif SC' !important;
-  line-height: 1.6;
-  margin: 0;
-  padding: 20px;
-  text-align: left; /* Change to left alignment */
-  background-color: #f5f5f5;
-  color: #333;
-  font-size: 16px; /* Set base font size */
-}
+  body {
+    font-family: 'Noto Serif SC' !important;
+    line-height: 1.6;
+    margin: 0;
+    padding: 20px;
+    text-align: left;
+    background-color: #f5f5f5;
+    color: #333;
+    font-size: 16px;
+  }
 
-h1 {
-  color: #333;
-  margin-top: 30px;
-  font-weight: bold;
-  text-transform: uppercase;
-  letter-spacing: 2px;
-  text-align: center; /* Center title */
-}
+  h1 {
+    color: #333;
+    margin-top: 30px;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    text-align: center;
+  }
 
-strong {
-  font-weight: bold;
-}
+  h2 {
+    color: #444;
+    margin-top: 25px;
+    font-weight: bold;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 10px;
+  }
 
-ul {
-  padding-left: 20px;
-}
+  .language-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 15px;
+    margin-top: 20px;
+  }
 
-a {
-  color: #007bff;
-  text-decoration: none;
-}
+  .language-card {
+    background-color: #fff;
+    border-radius: 8px;
+    padding: 15px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
 
-a:hover {
-  text-decoration: underline;
-}
+  .language-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+  }
 
-.container {
-  max-width: 800px;
-  margin: 0 auto;
-  padding: 20px; /* Add padding */
-  font-size: 1em; /* Use relative units for font size */
-  background-color: #fff; /* White background */
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); /* Add shadow effect */
-}
+  .language-name {
+    font-weight: bold;
+    margin-bottom: 5px;
+  }
+
+  .language-region {
+    font-size: 0.9em;
+    color: #666;
+    margin-bottom: 10px;
+  }
+
+  .language-link {
+    display: inline-block;
+    background-color: #007bff;
+    color: white;
+    padding: 8px 15px;
+    border-radius: 4px;
+    text-decoration: none;
+    transition: background-color 0.2s;
+  }
+
+  .language-link:hover {
+    background-color: #0056b3;
+  }
+
+  strong {
+    font-weight: bold;
+  }
+
+  .last-updated {
+    text-align: center;
+    margin-top: 30px;
+    font-size: 0.9em;
+    color: #666;
+  }
+
+  .header-info {
+    background-color: #e9f5ff;
+    border-left: 4px solid #007bff;
+    padding: 15px;
+    margin-bottom: 20px;
+    border-radius: 0 4px 4px 0;
+  }
+
+  .container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 20px;
+    background-color: #fff;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+  }
   </style>
 </head>
 <body>
- <div class="container">
-    <h1>Privacy Policy</h1>
-    <ul >
-        <h2>Please select the language you would like to read:</h2>
-        <li><a href="zh-cn.html">简体中文</a></li>
-        <li><a href="zh-tw.html">繁體中文</a></li>
-        <li><a href="en-us.html">English(US)</a></li>
-        <li><a href="en-gb.html">English(UK)</a></li>
-        <li><a href="ja-jp.html">日本語</a></li>
-        <li><a href="ko-kr.html">한국어</a></li>
-    </ul>
- </div>
-    
-    
+  <div class="container">
+    <h1>隐私政策</h1>
+
+    <div class="header-info">
+      <p>我们致力于保护您的隐私。请选择您希望阅读的语言版本：</p>
+    </div>
+
+    <h2>选择语言</h2>
+    <div class="language-grid">
+      <div class="language-card">
+        <div class="language-name">简体中文</div>
+        <div class="language-region">中国大陆地区</div>
+        <a href="zh-cn.html" class="language-link">查看政策</a>
+      </div>
+
+      <div class="language-card">
+        <div class="language-name">繁體中文</div>
+        <div class="language-region">台湾地区（中国的一部分）</div>
+        <a href="zh-tw.html" class="language-link">查看政策</a>
+      </div>
+
+      <div class="language-card">
+        <div class="language-name">English (US)</div>
+        <div class="language-region">美国地区</div>
+        <a href="en-us.html" class="language-link">View Policy</a>
+      </div>
+
+      <div class="language-card">
+        <div class="language-name">English (UK)</div>
+        <div class="language-region">英国地区</div>
+        <a href="en-gb.html" class="language-link">View Policy</a>
+      </div>
+
+      <div class="language-card">
+        <div class="language-name">日本語</div>
+        <div class="language-region">日本地区</div>
+        <a href="ja-jp.html" class="language-link">ポリシーを表示</a>
+      </div>
+
+      <div class="language-card">
+        <div class="language-name">한국어</div>
+        <div class="language-region">韩国地区</div>
+        <a href="ko-kr.html" class="language-link">정책 보기</a>
+      </div>
+    </div>
+
+    <div class="last-updated">
+      <p>最后更新：2025年9月25日</p>
+    </div>
+  </div>
 </body>
 </html>
