@@ -164,6 +164,25 @@ if ! /tmp/install-agent.sh -p 45876 -k "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAnK
     exit 1
 fi
 
+# 检测网络环境
+echo "Detecting network environment..."
+if curl -s --connect-timeout 5 https://www.google.com > /dev/null 2>&1; then
+    echo "Using international mirrors"
+    UPDATE_COMMAND="/opt/beszel-agent/beszel-agent update"
+else
+    echo "Using China mirrors"
+    UPDATE_COMMAND="/opt/beszel-agent/beszel-agent update --china-mirrors https://git.itedev.com/https://github.com/"
+fi
+
+# 根据网络环境生成run-update.sh内容
+cat > /opt/beszel-agent/run-update.sh <<EOF
+#!/bin/sh
+$UPDATE_COMMAND
+systemctl restart beszel-agent
+exit 0
+EOF
+chmod +x /opt/beszel-agent/run-update.sh
+
 # Indicate that the installation has completed successfully
 echo "Installation completed successfully!"
 
