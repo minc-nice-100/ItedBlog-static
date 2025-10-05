@@ -1,34 +1,60 @@
 #!/bin/bash
-
-# DDNS-GO
 set -eo pipefail
+export DEBIAN_FRONTEND=noninteractive
 
-# Run as root
-if [ "$EUID" -ne 0 ]; then
-    echo "Please run as root"
+# -------------------------------------------------------------
+# Color Definitions
+# -------------------------------------------------------------
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+NC='\033[0m' # No Color
+
+log()     { echo -e "${BLUE}[$(date '+%Y-%m-%d %H:%M:%S')]${NC} $1"; }
+error()   { echo -e "${RED}[ERROR] $1${NC}"; }
+success() { echo -e "${GREEN}[OK] $1${NC}"; }
+warn()    { echo -e "${YELLOW}[WARN] $1${NC}"; }
+
+# -------------------------------------------------------------
+# Root check
+# -------------------------------------------------------------
+if [ "$(id -u)" -ne 0 ]; then
+    error "Please run as root"
     exit 1
 fi
 
-# Set directory to the script's location
-script_dir=$(dirname "$(readlink -f "$0")")
-cd "$script_dir"
+# -------------------------------------------------------------
+# Directories
+# -------------------------------------------------------------
+SCRIPT_DIR=$(dirname "$(readlink -f "$0")")
+DDNS_DIR="/opt/ddns-go"
+INFO_DIR="/opt/itedev-info"
+mkdir -p "$DDNS_DIR" "$INFO_DIR"
 
+# -------------------------------------------------------------
 # Remove old version
-echo "Removing old version of DDNS-GO"
-rm -rf /opt/ddns-go
+# -------------------------------------------------------------
+if [ -d "$DDNS_DIR" ]; then
+    log "Removing old DDNS-GO installation..."
+    rm -rf "$DDNS_DIR"
+fi
 
-# Copy files to /opt/ddns-go
-echo "Copying DDNS-GO files to /opt/ddns-go"
-mkdir -p /opt/ddns-go
-cp -r ../ddns-go/* /opt/ddns-go/
+# -------------------------------------------------------------
+# Copy files
+# -------------------------------------------------------------
+log "Copying DDNS-GO files to $DDNS_DIR"
+cp -r "$SCRIPT_DIR/../ddns-go/"* "$DDNS_DIR/"
+chmod +x "$DDNS_DIR/ddns-go"
 
-# Set permissions
-echo "Setting permissions for DDNS-GO"
-chmod +x /opt/ddns-go/ddns-go
+# -------------------------------------------------------------
+# Create config file
+# -------------------------------------------------------------
+MACHINE_ID=$(cat /etc/machine-id)
+CONFIG_FILE="$DDNS_DIR/config.yaml"
+log "Creating config file at $CONFIG_FILE"
 
-# Create config file, use the /etc/machine-id as the sub domain name
-echo "Creating config file at /opt/ddns-go/config.yaml"
-cat > /opt/ddns-go/config.yaml << EOF
+cat > "$CONFIG_FILE" << EOF
 dnsconf:
     - name: ""
       ipv4:
@@ -36,7 +62,7 @@ dnsconf:
         gettype: netInterface
         netinterface: tun114514
         domains:
-            - $(cat /etc/machine-id).control-network.internal:itedev.com
+            - ${MACHINE_ID}.control-network.internal.itedev.com
       dns:
         name: cloudflare
         id: "584970"
@@ -45,17 +71,22 @@ dnsconf:
 lang: zh
 EOF
 
+# -------------------------------------------------------------
 # Install service
-echo "Installing DDNS-GO service"
-/opt/ddns-go/ddns-go -s install -c /opt/ddns-go/config.yaml -noweb -cacheTimes 20 -f 1
+# -------------------------------------------------------------
+log "Installing DDNS-GO service..."
+"$DDNS_DIR/ddns-go" -s install -c "$CONFIG_FILE" -noweb -cacheTimes 20 -f 1
 
+# -------------------------------------------------------------
 # Create INFO file
-echo "Creating INFO file at /opt/itedev-info/internal-domain"
-cat > /opt/itedev-info/internal-domain << EOF
-$(cat /etc/machine-id).control-network.internal.itedev.com
-EOF
-# Set permissions
-chmod 444 /opt/itedev-info/internal-domain
+# -------------------------------------------------------------
+INFO_FILE="$INFO_DIR/internal-domain"
+log "Creating INFO file at $INFO_FILE"
+echo "${MACHINE_ID}.control-network.internal.itedev.com" > "$INFO_FILE"
+chmod 444 "$INFO_FILE"
 
-# Success message
-echo "DDNS-GO installed successfully!"
+# -------------------------------------------------------------
+# Finish
+# -------------------------------------------------------------
+success "DDNS-GO installed successfully!"
+success "Internal domain: $(cat "$INFO_FILE")"

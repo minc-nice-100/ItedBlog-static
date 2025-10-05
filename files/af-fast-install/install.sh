@@ -1,200 +1,112 @@
 #!/bin/bash
-# Set the script to exit immediately if any command exits with a non-zero status
-# and to treat errors in a pipeline as the return value of the last command in the pipeline
 set -eo pipefail
 
-# Define the URL for the installation package
-INSTALL_PKG_URL="https://static.itedev.com/files/af-fast-install/package.tar.gz"
-# Define the target directory for extracting the package
-TARGET_DIR="package"
-# Define the directory for storing information related to the installation
-INFO_DIR="/opt/itedev-info/"
+# -----------------------------
+# 彩色日志
+# -----------------------------
+RED='\033[0;31m'; GREEN='\033[0;32m'; YELLOW='\033[1;33m'; BLUE='\033[0;34m'; NC='\033[0m'
+log() { echo -e "${BLUE}[$(date '+%F %T')]${NC} $*"; }
+log_success() { echo -e "${GREEN}[$(date '+%F %T')]${NC} $*"; }
+log_warn() { echo -e "${YELLOW}[$(date '+%F %T')]${NC} $*"; }
+log_error() { echo -e "${RED}[$(date '+%F %T')] ERROR: $*${NC}" >&2; exit 1; }
 
-# Check if the script is being run as root
-if [ "$EUID" -ne 0 ]; then
-    echo "This script must be run as root"
-    exit 1
-fi
+# -----------------------------
+# Root check
+# -----------------------------
+[ "$(id -u)" -ne 0 ] && log_error "Must run as root"
 
-# Parse command-line arguments
+# -----------------------------
+# Parse arguments
+# -----------------------------
 TOKEN=""
 while getopts ":t:" opt; do
-  case ${opt} in
-    t )
-      TOKEN="$OPTARG"
-      ;;
-    \? )
-      echo "Usage: $0 [-t target]" >&2
-      exit 1
-      ;;
+  case $opt in
+    t) TOKEN="$OPTARG";;
+    \?) log_error "Usage: $0 [-t <token>]";;
   esac
 done
-shift $((OPTIND -1))
 
-if [ -z "$TOKEN" ]; then
-  echo "Error: -t parameter is required"
-  exit 1
-fi
+# -----------------------------
+# Directories & URLs
+# -----------------------------
+INSTALL_PKG_URL="https://static.itedev.com/files/af-fast-install/package.tar.gz"
+TMP_DIR=$(mktemp -d /tmp/install-all-XXXXXX)
+PACKAGE="$TMP_DIR/package.tar.gz"
+INSTALLER_DIR="$TMP_DIR/package/install/installer"
+INFO_DIR="/opt/itedev-info/"
+mkdir -p "$INFO_DIR"
 
-
-# Create the info directory if it does not already exist
-if [ ! -d "$INFO_DIR" ]; then
-    echo "Creating info directory at $INFO_DIR"
-    mkdir -p "$INFO_DIR"
-fi
-
-# Define a comprehensive cleanup function to remove temporary files
+# -----------------------------
+# Cleanup
+# -----------------------------
 cleanup() {
     local exit_code=$?
-    echo "Cleaning up temporary files..."
-    
-    # Remove downloaded package
-    if [ -f "package.tar.gz" ]; then
-        echo "Removing package.tar.gz..."
-        rm -f package.tar.gz 2>/dev/null || true
-    fi
-    
-    # Remove extracted directory
-    if [ -d "$TARGET_DIR" ]; then
-        echo "Removing $TARGET_DIR directory..."
-        rm -rf "$TARGET_DIR" 2>/dev/null || true
-    fi
-    
-    # Remove temporary beszel agent installation script
-    if [ -f "/tmp/install-agent.sh" ]; then
-        echo "Removing temporary beszel agent script..."
-        rm -f /tmp/install-agent.sh 2>/dev/null || true
-    fi
-    
-    # Clean up any other temporary files that might have been created
-    echo "Cleaning up other temporary files..."
-    rm -f /tmp/beszel-* 2>/dev/null || true
-    rm -f /tmp/easytier-* 2>/dev/null || true
-    rm -f /tmp/ddns-go-* 2>/dev/null || true
-    
-    # If exit code is not 0, it means the script exited due to an error
+    log "Cleaning up temporary files..."
+    rm -rf "$TMP_DIR" 2>/dev/null || true
+    rm -f /tmp/easytier-* /tmp/ddns-go-* /tmp/beszel-* 2>/dev/null || true
     if [ $exit_code -ne 0 ]; then
-        echo "Script exited with error code $exit_code. Cleanup completed."
+        log_error "Script exited with code $exit_code. Cleanup done."
     else
-        echo "Cleanup completed successfully."
+        log_success "Cleanup completed successfully."
     fi
 }
+trap cleanup EXIT INT TERM HUP QUIT
 
-# Set the cleanup function to be called when the script exits for any reason
-# This includes normal exit, errors, interrupts (Ctrl+C), and other signals
-trap cleanup EXIT
-trap cleanup INT
-trap cleanup TERM
-trap cleanup HUP
-trap cleanup QUIT
-
-# Download the installation package from the defined URL
-echo "Downloading installation package..."
-if ! wget -q --show-progress "$INSTALL_PKG_URL"; then
-    echo "Error: Failed to download the installation package"
-    exit 1
+# -----------------------------
+# Download package
+# -----------------------------
+log "Downloading installation package..."
+if ! wget -q --show-progress "$INSTALL_PKG_URL" -O "$PACKAGE"; then
+    log_error "Failed to download $INSTALL_PKG_URL"
 fi
 
-# Verify the downloaded file exists and is not empty
-if [ ! -s "package.tar.gz" ]; then
-    echo "Error: Downloaded package is empty or corrupted"
-    exit 1
+[ -s "$PACKAGE" ] || log_error "Downloaded package is empty"
+
+# -----------------------------
+# Extract package
+# -----------------------------
+log "Extracting package..."
+mkdir -p "$TMP_DIR/package"
+if ! tar -zxvf "$PACKAGE" -C "$TMP_DIR/package"; then
+    log_error "Extraction failed"
 fi
 
-# Extract the downloaded package into the target directory
-echo "Extracting files..."
-mkdir -p "$TARGET_DIR"
-if ! tar -zxvf package.tar.gz -C "$TARGET_DIR"; then
-    echo "Error: Extraction failed"
-    exit 1
-fi
+[ -d "$INSTALLER_DIR" ] || log_error "Installer directory not found after extraction: $INSTALLER_DIR"
 
-# Verify extraction was successful
-if [ ! -d "$TARGET_DIR/installer" ]; then
-    echo "Error: Extraction incomplete - installer directory not found"
-    exit 1
-fi
+# -----------------------------
+# Run installer component
+# -----------------------------
+run_component() {
+    local script="$1"
+    local name=$(basename "$script" .sh)
+    chmod +x "$script"
+    log "Installing $name..."
 
-# Change the current directory to the target directory
-cd "$TARGET_DIR" || {
-    echo "Error: Failed to change to target directory"
-    exit 1
+    if [[ "$name" == "beszel-agent" ]]; then
+        [ -z "$TOKEN" ] && log_error "Missing required -t <token> for beszel-agent"
+        bash "$script" -t "$TOKEN"
+    else
+        bash "$script"
+    fi
+
+    log_success "$name installation completed"
 }
 
-# Set execution permissions for all shell scripts in the installer directory
-echo "Setting permissions..."
-if ! find installer/ -type f -name "*.sh" -exec chmod +x {} +; then
-    echo "Error: Failed to set permissions for installer scripts"
-    exit 1
-fi
+# -----------------------------
+# Auto-discover and install
+# -----------------------------
+log "Scanning for installer scripts in $INSTALLER_DIR..."
+shopt -s nullglob
+for script in "$INSTALLER_DIR"/*.sh; do
+    run_component "$script"
+done
+shopt -u nullglob
 
-# Execute the installation scripts with error handling
-echo "Installing dependencies..."
-if ! ./installer/dependence.sh; then
-    echo "Error: Dependencies installation failed"
-    exit 1
-fi
+# -----------------------------
+# Post-install summary
+# -----------------------------
+log_success "All components installed successfully!"
+[ -f "$INFO_DIR/internal-domain" ] && log "Control network domain: $(cat "$INFO_DIR/internal-domain")" || log_warn "internal-domain file not found"
 
-echo "Installing easytier..."
-if ! ./installer/easytier.sh; then
-    echo "Error: Easytier installation failed"
-    exit 1
-fi
-
-echo "Installing ddns-go..."
-if ! ./installer/ddns-go.sh; then
-    echo "Error: DDNS-GO installation failed"
-    exit 1
-fi
-
-echo "Installing beszel agent..."
-# Download and execute the beszel agent installation script with error handling
-if ! curl -sL https://get.beszel.dev -o /tmp/install-agent.sh; then
-    echo "Error: Failed to download beszel agent installation script"
-    exit 1
-fi
-
-if ! chmod +x /tmp/install-agent.sh; then
-    echo "Error: Failed to set permissions for beszel agent script"
-    exit 1
-fi
-
-if ! /tmp/install-agent.sh -p 45876 -k "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAnKR+p5h6rehBbitM9bD/c2NOUbMdIqu4zRAjid8zX4" --china-mirrors --auto-update -url "http://e57ff0a24e7f4813a03786276e59755a.control-network.internal.itedev.com:8090" -t "$TOKEN"; then
-    echo "Error: Beszel agent installation failed"
-    exit 1
-fi
-
-# 检测网络环境
-echo "Detecting network environment..."
-if curl -s --connect-timeout 5 https://www.google.com > /dev/null 2>&1; then
-    echo "Using international mirrors"
-    UPDATE_COMMAND="/opt/beszel-agent/beszel-agent update"
-else
-    echo "Using China mirrors"
-    UPDATE_COMMAND="/opt/beszel-agent/beszel-agent update --china-mirrors https://git.itedev.com/https://github.com/"
-fi
-
-# 根据网络环境生成run-update.sh内容
-cat > /opt/beszel-agent/run-update.sh <<EOF
-#!/bin/sh
-$UPDATE_COMMAND
-systemctl restart beszel-agent
-exit 0
-EOF
-chmod +x /opt/beszel-agent/run-update.sh
-
-# Indicate that the installation has completed successfully
-echo "Installation completed successfully!"
-
-# Print the control network domain from the info directory if it exists
-if [ -f "/opt/itedev-info/internal-domain" ]; then
-    echo "Control network domain: $(cat /opt/itedev-info/internal-domain)"
-else
-    echo "Warning: Control network domain file not found"
-fi
-
-# Indicate that the script execution has finished
-echo "Script execution finished."
-
-# Exit with success code (cleanup will be called automatically due to trap)
+log "Script finished."
 exit 0

@@ -1,90 +1,140 @@
 #!/bin/bash
+set -eo pipefail
+export DEBIAN_FRONTEND=noninteractive
 
-# Predefined color codes
+# -------------------------------------------------------------
+# Color Definitions
+# -------------------------------------------------------------
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
-# Get the absolute path of the script
-script_dir=$(dirname "$(readlink -f "$0")")
-
-# Function to log messages
+# -------------------------------------------------------------
+# Logging Function
+# -------------------------------------------------------------
 log_message() {
     echo -e "${BLUE}[$(date '+%Y-%m-%d %H:%M:%S')]${NC} $1"
 }
 
-# Function to validate daemon.json
-validate_daemon_json() {
-    local config_file="$1"
-    if [ ! -f "$config_file" ]; then
-        echo -e "${RED}Error: Configuration file $config_file does not exist.${NC}"
-        return 1
-    fi
-    
-    # Check JSON syntax
-    if ! jq empty "$config_file" 2>/dev/null; then
-        echo -e "${RED}Error: Invalid JSON syntax in $config_file${NC}"
-        echo -e "${RED}Content of the file:${NC}"
-        cat "$config_file"
-        return 1
-    fi
-    
-    echo -e "${GREEN}JSON configuration is valid.${NC}"
-    return 0
-}
+# -------------------------------------------------------------
+# Root Check
+# -------------------------------------------------------------
+if [ "$(id -u)" -ne 0 ]; then
+    echo -e "${RED}Error: Please run as root.${NC}"
+    exit 1
+fi
 
-# Function to test Docker daemon configuration
-test_docker_config() {
-    log_message "Testing Docker daemon configuration..."
+# -------------------------------------------------------------
+# Environment Checks
+# -------------------------------------------------------------
+log_message "Checking system environment..."
+arch=$(uname -m)
+if [ "$arch" != "x86_64" ]; then
+    echo -e "${RED}Error: Only x86_64 architecture is supported.${NC}"
+    exit 1
+fi
+
+required_space=100
+available_space=$(df -m /opt | awk 'NR==2 {print $4}')
+if [ "$available_space" -lt "$required_space" ]; then
+    echo -e "${RED}Error: Insufficient /opt disk space (need ${required_space}MB).${NC}"
+    exit 1
+fi
+
+# -------------------------------------------------------------
+# Region Detection (Domestic / International)
+# -------------------------------------------------------------
+log_message "Detecting network region..."
+is_domestic=false
+if ! curl -m 3 -s https://www.google.com >/dev/null 2>&1; then
+    is_domestic=true
+    echo -e "${YELLOW}Google unreachable → assuming China mainland network.${NC}"
+else
+    echo -e "${GREEN}Google reachable → assuming overseas network.${NC}"
+fi
+
+# -------------------------------------------------------------
+# APT Source Replacement (Docker Mirror)
+# -------------------------------------------------------------
+replace_docker_sources() {
+    log_message "Replacing Docker APT sources with mirror.itedev.com..."
     
-    # Stop Docker service
-    systemctl stop docker
-    
-    # Test configuration
-    if dockerd --config-file /etc/docker/daemon.json --validate 2>/dev/null; then
-        echo -e "${GREEN}Docker daemon configuration is valid.${NC}"
-        systemctl start docker
-        return 0
+    local apt_files=()
+    [ -f /etc/apt/sources.list ] && apt_files+=("/etc/apt/sources.list")
+    apt_files+=($(ls /etc/apt/sources.list.d/*.list 2>/dev/null || true))
+
+    if [ ${#apt_files[@]} -eq 0 ]; then
+        log_message "No existing APT sources found, creating docker.list manually."
+        echo "deb [arch=amd64] https://download.docker.com.mirror.itedev.com/linux/ubuntu $(lsb_release -cs) stable" > /etc/apt/sources.list.d/docker.list
     else
-        echo -e "${RED}Docker daemon configuration validation failed.${NC}"
-        echo -e "${YELLOW}Checking configuration with detailed output...${NC}"
-        dockerd --config-file /etc/docker/daemon.json --validate
-        systemctl start docker
-        return 1
+        for file in "${apt_files[@]}"; do
+            if grep -q "download.docker.com" "$file"; then
+                sed -i 's|http://download.docker.com|https://download.docker.com.mirror.itedev.com|g' "$file"
+                sed -i 's|https://download.docker.com|https://download.docker.com.mirror.itedev.com|g' "$file"
+                echo -e "${GREEN}Updated Docker source in:${NC} $file"
+            fi
+        done
     fi
 }
 
-# Function to create backup of existing configuration
+# Apply if domestic
+if [ "$is_domestic" = true ]; then
+    replace_docker_sources
+else
+    log_message "Skipping APT source replacement (international network)."
+fi
+
+# -------------------------------------------------------------
+# Install Dependencies
+# -------------------------------------------------------------
+log_message "Installing dependencies..."
+apt update -y || { echo -e "${RED}APT update failed.${NC}"; exit 1; }
+apt install -y curl wget jq git unzip zip bzip2 gzip tar htop nload tcpdump iperf3 || {
+    echo -e "${RED}Dependency installation failed.${NC}"; exit 1;
+}
+echo -e "${GREEN}Dependencies installed successfully.${NC}"
+
+# -------------------------------------------------------------
+# Docker Installation
+# -------------------------------------------------------------
+log_message "Installing Docker and Docker Compose..."
+
+if dpkg -l | grep -qw docker; then
+    apt remove -y docker docker.io containerd runc
+else
+    echo -e "${YELLOW}No conflicting Docker packages found.${NC}"
+fi
+
+apt install -y docker.io docker-compose || {
+    echo -e "${RED}Failed to install Docker.${NC}"; exit 1;
+}
+
+systemctl enable docker
+echo -e "${GREEN}Docker installed successfully.${NC}"
+
+# -------------------------------------------------------------
+# Docker Configuration
+# -------------------------------------------------------------
 backup_existing_config() {
     if [ -f /etc/docker/daemon.json ]; then
-        local backup_file="/etc/docker/daemon.json.backup.$(date +%Y%m%d_%H%M%S)"
-        cp /etc/docker/daemon.json "$backup_file"
-        echo -e "${YELLOW}Existing configuration backed up to: $backup_file${NC}"
+        cp /etc/docker/daemon.json /etc/docker/daemon.json.backup.$(date +%Y%m%d_%H%M%S)
+        echo -e "${YELLOW}Backup created for existing Docker config.${NC}"
     fi
 }
 
-# Function to create minimal Docker configuration
 create_minimal_config() {
-    log_message "Creating minimal Docker configuration..."
-    
     cat > /etc/docker/daemon.json << 'EOF'
 {
   "log-driver": "json-file",
-  "log-opts": {
-    "max-size": "100m",
-    "max-file": "3"
-  },
+  "log-opts": { "max-size": "100m", "max-file": "3" },
   "storage-driver": "overlay2"
 }
 EOF
 }
 
-# Function to create Docker configuration with mirrors
 create_config_with_mirrors() {
-    log_message "Creating Docker configuration with registry mirrors..."
-    
     cat > /etc/docker/daemon.json << 'EOF'
 {
   "registry-mirrors": [
@@ -94,251 +144,93 @@ create_config_with_mirrors() {
     "https://hub-mirror.c.163.com"
   ],
   "log-driver": "json-file",
-  "log-opts": {
-    "max-size": "100m",
-    "max-file": "3"
-  }
+  "log-opts": { "max-size": "100m", "max-file": "3" }
 }
 EOF
 }
 
-# Function to safely restart Docker
-restart_docker_safely() {
-    log_message "Restarting Docker service safely..."
-    
-    # Reload systemd configuration
-    if ! systemctl daemon-reload; then
-        echo -e "${RED}Error: Failed to reload systemd daemon.${NC}"
-        return 1
-    fi
-    
-    # Stop Docker gracefully
-    systemctl stop docker
-    sleep 2
-    
-    # Kill any remaining Docker processes
-    pkill -f dockerd 2>/dev/null || true
-    sleep 1
-    
-    # Start Docker
-    if systemctl start docker; then
-        # Wait for Docker to be ready
-        local timeout=30
-        local count=0
-        while [ $count -lt $timeout ]; do
-            if docker info >/dev/null 2>&1; then
-                echo -e "${GREEN}Docker started successfully.${NC}"
-                return 0
-            fi
-            sleep 1
-            ((count++))
-        done
-        
-        echo -e "${RED}Docker started but is not responding within timeout.${NC}"
-        return 1
-    else
-        echo -e "${RED}Failed to start Docker service.${NC}"
-        return 1
-    fi
+validate_daemon_json() {
+    jq empty "$1" >/dev/null 2>&1
 }
 
-# Check if the script is run as root
-if [ "$(id -u)" -ne 0 ]; then
-    echo -e "${RED}Error: This script must be run as root. Please use sudo.${NC}"
-    exit 1
-fi
+restart_docker_safely() {
+    log_message "Restarting Docker service..."
+    systemctl daemon-reload
+    systemctl stop docker
+    pkill -f dockerd 2>/dev/null || true
+    systemctl start docker
+    for i in {1..20}; do
+        docker info >/dev/null 2>&1 && { echo -e "${GREEN}Docker restarted.${NC}"; return 0; }
+        sleep 1
+    done
+    echo -e "${RED}Docker failed to start.${NC}"
+    return 1
+}
 
-# Installation pre-check list
-log_message "Performing system environment checks..."
-
-# Check system architecture
-arch=$(uname -m)
-if [ "$arch" != "x86_64" ]; then
-    echo -e "${RED}Error: Current architecture ${arch} is not supported. Only x86_64 architecture is supported.${NC}"
-    exit 1
-fi
-
-# Check disk space (at least 100MB)
-required_space=100
-available_space=$(df -m /opt | awk 'NR==2 {print $4}')
-if [ "$available_space" -lt "$required_space" ]; then
-    echo -e "${RED}Error: Insufficient disk space in /opt partition (required ${required_space}MB, available ${available_space}MB).${NC}"
-    exit 1
-fi
-
-# Install dependencies
-log_message "Installing dependencies..."
-if ! apt update -y; then
-    echo -e "${RED}Error: Failed to update package lists.${NC}"
-    exit 1
-fi
-
-if ! apt install -y curl wget jq git unzip zip bzip2 gzip tar iperf3 tcpdump nload htop; then
-    echo -e "${RED}Error: Failed to install dependencies.${NC}"
-    exit 1
-fi
-
-echo -e "${GREEN}Dependencies installed successfully.${NC}"
-
-# Install Docker and Docker Compose
-log_message "Installing Docker and Docker Compose..."
-
-# Check if Docker is installed and remove it
-if dpkg -l | grep -qw docker; then
-    if ! apt remove -y docker docker.io containerd runc; then
-        echo -e "${RED}Error: Failed to remove conflicting Docker packages.${NC}"
-        exit 1
-    fi
-else
-    echo -e "${YELLOW}No conflicting Docker packages found to remove.${NC}"
-fi
-
-# Install Docker and Docker Compose
-if ! apt install -y docker.io docker-compose; then
-    echo -e "${RED}Error: Failed to install Docker and Docker Compose.${NC}"
-    exit 1
-fi
-
-# Start Docker service initially
-if ! systemctl enable docker; then
-    echo -e "${RED}Error: Failed to enable Docker service.${NC}"
-    exit 1
-fi
-
-echo -e "${GREEN}Docker and Docker Compose installed successfully.${NC}"
-
-# Configure Docker
 log_message "Configuring Docker..."
-
-# Create docker directory
 mkdir -p /etc/docker
-
-# Backup existing configuration
 backup_existing_config
 
-# Test network connectivity to determine configuration
-log_message "Testing network connectivity..."
-if timeout 5 ping -c 1 google.com >/dev/null 2>&1; then
-    echo -e "${GREEN}Internet connectivity is good, using minimal configuration.${NC}"
-    create_minimal_config
-else
-    echo -e "${YELLOW}Limited internet connectivity detected, adding registry mirrors.${NC}"
+if [ "$is_domestic" = true ]; then
     create_config_with_mirrors
-fi
-
-# Validate the created configuration
-if ! validate_daemon_json /etc/docker/daemon.json; then
-    echo -e "${RED}Configuration validation failed, falling back to minimal config.${NC}"
-    create_minimal_config
-    
-    if ! validate_daemon_json /etc/docker/daemon.json; then
-        echo -e "${RED}Even minimal configuration failed. Removing daemon.json.${NC}"
-        rm -f /etc/docker/daemon.json
-    fi
-fi
-
-# Test configuration if daemon.json exists
-if [ -f /etc/docker/daemon.json ]; then
-    # Show the configuration
-    log_message "Docker configuration created:"
-    cat /etc/docker/daemon.json
-    
-    # Restart Docker with new configuration
-    if ! restart_docker_safely; then
-        echo -e "${RED}Failed to restart Docker with new configuration.${NC}"
-        echo -e "${YELLOW}Reverting to default configuration...${NC}"
-        
-        # Move problematic config
-        mv /etc/docker/daemon.json /etc/docker/daemon.json.failed 2>/dev/null
-        
-        # Try restarting without configuration
-        if restart_docker_safely; then
-            echo -e "${YELLOW}Docker restarted successfully without custom configuration.${NC}"
-        else
-            echo -e "${RED}Failed to start Docker even without configuration.${NC}"
-            echo -e "${RED}Docker logs:${NC}"
-            journalctl -u docker --no-pager -n 20
-            exit 1
-        fi
-    fi
 else
-    # Start Docker without custom configuration
-    if ! restart_docker_safely; then
-        echo -e "${RED}Failed to start Docker.${NC}"
-        echo -e "${RED}Docker logs:${NC}"
-        journalctl -u docker --no-pager -n 20
-        exit 1
-    fi
+    create_minimal_config
 fi
 
-# Verify Docker is working
-log_message "Verifying Docker installation..."
-if ! timeout 30 docker version >/dev/null 2>&1; then
-    echo -e "${RED}Docker is not responding properly.${NC}"
+if validate_daemon_json /etc/docker/daemon.json; then
+    restart_docker_safely
+else
+    echo -e "${RED}Invalid daemon.json, reverting.${NC}"
+    mv /etc/docker/daemon.json /etc/docker/daemon.json.invalid
+    restart_docker_safely
+fi
+
+# -------------------------------------------------------------
+# Verify Docker
+# -------------------------------------------------------------
+log_message "Verifying Docker..."
+if docker version >/dev/null 2>&1; then
+    echo -e "${GREEN}Docker is working correctly.${NC}"
+else
+    echo -e "${RED}Docker verification failed.${NC}"
     systemctl status docker --no-pager
     exit 1
 fi
 
-echo -e "${GREEN}Docker is working correctly.${NC}"
-
+# -------------------------------------------------------------
 # Install Portainer Agent
+# -------------------------------------------------------------
 log_message "Installing Portainer Agent..."
+docker rm -f portainer_agent >/dev/null 2>&1 || true
 
-# Remove existing container if it exists
-docker rm -f portainer_agent 2>/dev/null || true
-
-# Pull and run Portainer Agent
-if timeout 180 docker pull portainer/agent:2.21.4; then
-    PORTAINER_IMAGE="portainer/agent:2.21.4"
-elif timeout 180 docker pull portainer/agent:latest; then
-    PORTAINER_IMAGE="portainer/agent:latest"
+if docker pull portainer/agent:2.21.4 >/dev/null 2>&1 || docker pull portainer/agent:latest >/dev/null 2>&1; then
+    docker run -d \
+        -p 12512:9001 \
+        --name portainer_agent \
+        --restart=always \
+        -v /var/run/docker.sock:/var/run/docker.sock \
+        -v /var/lib/docker/volumes:/var/lib/docker/volumes \
+        -v /:/host \
+        portainer/agent:latest
+    echo -e "${GREEN}Portainer Agent running at:${NC} http://$(hostname -I | awk '{print $1}'):12512"
 else
-    echo -e "${RED}Failed to pull Portainer Agent image.${NC}"
-    PORTAINER_IMAGE=""
+    echo -e "${YELLOW}Failed to pull Portainer Agent image.${NC}"
 fi
 
-if [ -n "$PORTAINER_IMAGE" ]; then
-    if docker run -d \
-      -p 12512:9001 \
-      --name portainer_agent \
-      --restart=always \
-      -v /var/run/docker.sock:/var/run/docker.sock \
-      -v /var/lib/docker/volumes:/var/lib/docker/volumes \
-      -v /:/host \
-      "$PORTAINER_IMAGE"; then
-        echo -e "${GREEN}Portainer Agent is running on port 12512.${NC}"
-        echo -e "${GREEN}Access URL: http://$(hostname -I | awk '{print $1}'):12512${NC}"
-    else
-        echo -e "${RED}Failed to start Portainer Agent.${NC}"
-    fi
-else
-    echo -e "${YELLOW}Skipping Portainer Agent installation due to network issues.${NC}"
-fi
-
-# Display final status
+# -------------------------------------------------------------
+# Summary
+# -------------------------------------------------------------
 log_message "Installation Summary:"
-echo -e "${GREEN}Docker version:${NC}"
 docker --version
-
-echo -e "${GREEN}Docker Compose version:${NC}"
 docker-compose --version
-
-echo -e "${GREEN}Docker service status:${NC}"
-systemctl is-active docker
+systemctl is-active docker && echo -e "${GREEN}Docker service active.${NC}"
 
 if [ -f /etc/docker/daemon.json ]; then
     echo -e "${GREEN}Active Docker configuration:${NC}"
     cat /etc/docker/daemon.json
-else
-    echo -e "${YELLOW}Using default Docker configuration (no daemon.json)${NC}"
 fi
 
-echo -e "${GREEN}Running containers:${NC}"
 docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
-
-# Cleanup
-log_message "Cleaning up..."
 apt autoremove -y >/dev/null 2>&1
 apt autoclean >/dev/null 2>&1
-
-echo -e "${GREEN}Installation completed successfully!${NC}"
+echo -e "${GREEN}All done!${NC}"
