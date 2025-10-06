@@ -198,6 +198,28 @@ else
 fi
 
 # -------------------------------------------------------------
+# Enable BBR if not already enabled
+# -------------------------------------------------------------
+log_message "Checking TCP BBR status..."
+if lsmod | grep -q "bbr"; then
+    echo -e "${GREEN}BBR already enabled.${NC}"
+else
+    echo -e "${YELLOW}Enabling TCP BBR...${NC}"
+    modprobe tcp_bbr 2>/dev/null || true
+    echo "tcp_bbr" > /etc/modules-load.d/bbr.conf
+    {
+        echo "net.core.default_qdisc=fq"
+        echo "net.ipv4.tcp_congestion_control=bbr"
+    } >> /etc/sysctl.conf
+    sysctl -p >/dev/null 2>&1
+    if sysctl net.ipv4.tcp_congestion_control | grep -q "bbr"; then
+        echo -e "${GREEN}BBR enabled successfully.${NC}"
+    else
+        echo -e "${RED}Failed to enable BBR.${NC}"
+    fi
+fi
+
+# -------------------------------------------------------------
 # Install Portainer Agent
 # -------------------------------------------------------------
 log_message "Installing Portainer Agent..."
