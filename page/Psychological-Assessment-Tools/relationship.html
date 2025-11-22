@@ -1,0 +1,735 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>关系满意度测评</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+        }
+        
+        body {
+            background-color: #f5f7fa;
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #eaeaea;
+        }
+        
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            color: #7f8c8d;
+            font-size: 1.1rem;
+        }
+        
+        .intro-section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            border-left: 4px solid #3498db;
+        }
+        
+        .intro-section h2 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+        }
+        
+        .intro-section p {
+            margin-bottom: 10px;
+        }
+        
+        .instructions {
+            background: #fff8e1;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border-left: 4px solid #ffc107;
+        }
+        
+        .instructions h3 {
+            color: #e67e22;
+            margin-bottom: 10px;
+        }
+        
+        .question-section {
+            margin: 30px 0;
+        }
+        
+        .question {
+            background: white;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            border-left: 4px solid #3498db;
+        }
+        
+        .question-title {
+            font-weight: bold;
+            margin-bottom: 15px;
+            font-size: 1.1rem;
+        }
+        
+        .options {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .option {
+            flex: 1;
+            min-width: 120px;
+        }
+        
+        .option label {
+            display: block;
+            padding: 10px 15px;
+            background: #f1f8ff;
+            border: 1px solid #d1e3f6;
+            border-radius: 5px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .option input {
+            display: none;
+        }
+        
+        .option input:checked + label {
+            background: #3498db;
+            color: white;
+            border-color: #2980b9;
+        }
+        
+        .option label:hover {
+            background: #e1f0ff;
+        }
+        
+        .btn-container {
+            text-align: center;
+            margin: 30px 0;
+        }
+        
+        .btn {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            font-size: 1.1rem;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        
+        .btn:hover {
+            background: #2980b9;
+        }
+        
+        .result-section {
+            display: none;
+            margin-top: 40px;
+            padding: 25px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        
+        .result-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .total-score {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #2c3e50;
+            margin: 10px 0;
+        }
+        
+        .score-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 20px;
+            margin: 30px 0;
+        }
+        
+        .score-item {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+        
+        .score-value {
+            font-size: 1.8rem;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        
+        .interpretation {
+            margin-top: 30px;
+            padding: 20px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+        
+        .interpretation h3 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+        }
+        
+        .interpretation p {
+            margin-bottom: 15px;
+        }
+        
+        .note {
+            font-size: 0.9rem;
+            color: #7f8c8d;
+            margin-top: 20px;
+            font-style: italic;
+        }
+        
+        .suggestions {
+            margin-top: 20px;
+            padding: 15px;
+            background: #e8f4fd;
+            border-radius: 8px;
+            border-left: 4px solid #3498db;
+        }
+        
+        .suggestions h4 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        
+        .suggestions ul {
+            padding-left: 20px;
+        }
+        
+        .suggestions li {
+            margin-bottom: 8px;
+        }
+        
+        .dimension-scores {
+            margin: 25px 0;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+        
+        .dimension-scores h3 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        
+        .dimension-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+        
+        .dimension-item {
+            background: white;
+            padding: 15px;
+            border-radius: 6px;
+            text-align: center;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        
+        .dimension-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #3498db;
+            margin: 8px 0;
+        }
+        
+        .relationship-info {
+            background: #e8f4fd;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 4px solid #3498db;
+        }
+        
+        .relationship-info h3 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 10px;
+        }
+        
+        .info-item {
+            background: white;
+            padding: 12px;
+            border-radius: 6px;
+            text-align: center;
+        }
+        
+        .info-item label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        
+        .info-item select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #d1e3f6;
+            border-radius: 4px;
+            background: white;
+        }
+        
+        @media (max-width: 768px) {
+            .options {
+                flex-direction: column;
+            }
+            
+            .option {
+                width: 100%;
+            }
+            
+            .score-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .dimension-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .info-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>关系满意度测评</h1>
+            <div class="subtitle">Relationship Satisfaction Assessment</div>
+        </header>
+        
+        <section class="intro-section">
+            <h2>量表简介</h2>
+            <p>关系满意度测评用于评估个体在当前亲密关系中的满意程度，涵盖情感连接、沟通质量、冲突处理等多个维度。</p>
+            <p>本测评包含15个条目，帮助您了解关系中的优势领域和改进空间，促进更健康、更满意的亲密关系。</p>
+        </section>
+        
+        <section class="relationship-info">
+            <h3>关系基本信息</h3>
+            <div class="info-grid">
+                <div class="info-item">
+                    <label for="relationship-type">关系类型:</label>
+                    <select id="relationship-type">
+                        <option value="dating">恋爱关系</option>
+                        <option value="married">婚姻关系</option>
+                        <option value="long-term">长期伴侣</option>
+                        <option value="other">其他</option>
+                    </select>
+                </div>
+                <div class="info-item">
+                    <label for="relationship-length">关系时长:</label>
+                    <select id="relationship-length">
+                        <option value="0-1">少于1年</option>
+                        <option value="1-3">1-3年</option>
+                        <option value="3-5">3-5年</option>
+                        <option value="5-10">5-10年</option>
+                        <option value="10+">10年以上</option>
+                    </select>
+                </div>
+            </div>
+        </section>
+        
+        <section class="instructions">
+            <h3>测评说明</h3>
+            <p>请仔细阅读每一条目，根据您<strong>最近一个月</strong>在关系中的实际感受，选择最符合的选项。</p>
+            <p>请注意：所有题目均需作答，测评大约需要5-8分钟。</p>
+        </section>
+        
+        <section class="question-section" id="questions-container">
+            <!-- 问题将通过JavaScript动态生成 -->
+        </section>
+        
+        <div class="btn-container">
+            <button class="btn" id="submit-btn">提交测评</button>
+        </div>
+        
+        <section class="result-section" id="result-section">
+            <div class="result-header">
+                <h2>测评结果</h2>
+                <div class="total-score">总分: <span id="total-score">--</span></div>
+                <div id="satisfaction-level"></div>
+            </div>
+            
+            <div class="score-grid" id="score-grid">
+                <!-- 评分结果将通过JavaScript动态生成 -->
+            </div>
+            
+            <div class="dimension-scores" id="dimension-scores">
+                <!-- 维度分数将通过JavaScript动态生成 -->
+            </div>
+            
+            <div class="interpretation">
+                <h3>结果解读与建议</h3>
+                <div id="interpretation-content">
+                    <!-- 解读内容将通过JavaScript动态生成 -->
+                </div>
+                
+                <div class="suggestions" id="suggestions-content">
+                    <!-- 建议内容将通过JavaScript动态生成 -->
+                </div>
+                
+                <div class="note">
+                    注意：本测评结果仅供参考，反映您当前对关系满意度的主观感受。关系满意度会随着时间和互动方式的变化而改变。
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <script>
+        // 关系满意度量表问题和选项
+        const relationshipQuestions = [
+            "我对我们之间的关系感到满意",
+            "我的伴侣理解我的感受和需求",
+            "我们能够有效地解决分歧和冲突",
+            "我觉得在这段关系中可以做真实的自己",
+            "我们在一起时经常感到快乐",
+            "我的伴侣尊重我的个人空间和独立性",
+            "我们能够很好地沟通彼此的想法和感受",
+            "我对我们的未来充满信心",
+            "我的伴侣在我需要时给予情感支持",
+            "我们共同分担关系中的责任和义务",
+            "我对我们的亲密关系（情感和身体）感到满意",
+            "我们拥有共同的兴趣和价值观",
+            "我的伴侣重视并尊重我的意见",
+            "我们能够一起面对生活中的挑战",
+            "总体来说，这段关系满足了我的情感需求"
+        ];
+
+        // 问题对应的维度
+        const questionDimensions = [
+            "整体满意度", "情感理解", "冲突解决", "真实性", "快乐体验",
+            "尊重独立", "沟通质量", "未来信心", "情感支持", "责任分担",
+            "亲密关系", "共同价值", "相互尊重", "共同应对", "需求满足"
+        ];
+
+        // 维度分类
+        const dimensionCategories = {
+            "情感连接": [1, 4, 5, 8, 9, 11, 15],
+            "沟通互动": [2, 7, 10, 12, 13],
+            "冲突处理": [3, 6, 14]
+        };
+
+        // 初始化问题
+        function initializeQuestions() {
+            const questionsContainer = document.getElementById('questions-container');
+            
+            relationshipQuestions.forEach((question, index) => {
+                const questionElement = document.createElement('div');
+                questionElement.className = 'question';
+                
+                const questionTitle = document.createElement('div');
+                questionTitle.className = 'question-title';
+                questionTitle.textContent = `${index + 1}. ${question}`;
+                questionElement.appendChild(questionTitle);
+                
+                const optionsContainer = document.createElement('div');
+                optionsContainer.className = 'options';
+                
+                // 关系满意度选项：1=非常不同意，2=不同意，3=有点不同意，4=中立，5=有点同意，6=同意，7=非常同意
+                const options = [
+                    { value: 1, text: '非常不同意' },
+                    { value: 2, text: '不同意' },
+                    { value: 3, text: '有点不同意' },
+                    { value: 4, text: '中立' },
+                    { value: 5, text: '有点同意' },
+                    { value: 6, text: '同意' },
+                    { value: 7, text: '非常同意' }
+                ];
+                
+                options.forEach(option => {
+                    const optionElement = document.createElement('div');
+                    optionElement.className = 'option';
+                    
+                    const input = document.createElement('input');
+                    input.type = 'radio';
+                    input.name = `question-${index}`;
+                    input.value = option.value;
+                    input.id = `q${index}-opt${option.value}`;
+                    
+                    const label = document.createElement('label');
+                    label.htmlFor = `q${index}-opt${option.value}`;
+                    label.textContent = option.text;
+                    
+                    optionElement.appendChild(input);
+                    optionElement.appendChild(label);
+                    optionsContainer.appendChild(optionElement);
+                });
+                
+                questionElement.appendChild(optionsContainer);
+                questionsContainer.appendChild(questionElement);
+            });
+        }
+
+        // 计算得分
+        function calculateScore() {
+            let totalScore = 0;
+            const dimensionScores = [];
+            const categoryScores = {
+                "情感连接": { total: 0, count: 0 },
+                "沟通互动": { total: 0, count: 0 },
+                "冲突处理": { total: 0, count: 0 }
+            };
+            
+            for (let i = 0; i < relationshipQuestions.length; i++) {
+                const selectedOption = document.querySelector(`input[name="question-${i}"]:checked`);
+                
+                if (!selectedOption) {
+                    alert(`请回答第 ${i + 1} 题`);
+                    return null;
+                }
+                
+                const score = parseInt(selectedOption.value);
+                totalScore += score;
+                dimensionScores.push({
+                    dimension: questionDimensions[i],
+                    score: score
+                });
+                
+                // 计算分类分数
+                for (const [category, questions] of Object.entries(dimensionCategories)) {
+                    if (questions.includes(i + 1)) {
+                        categoryScores[category].total += score;
+                        categoryScores[category].count += 1;
+                    }
+                }
+            }
+            
+            // 计算分类平均分
+            const categoryAverages = {};
+            for (const [category, data] of Object.entries(categoryScores)) {
+                categoryAverages[category] = data.count > 0 ? 
+                    Math.round((data.total / data.count) * 10) / 10 : 0;
+            }
+            
+            return {
+                totalScore: totalScore,
+                dimensionScores: dimensionScores,
+                categoryAverages: categoryAverages
+            };
+        }
+
+        // 显示结果
+        function displayResult(result) {
+            const resultSection = document.getElementById('result-section');
+            const totalScoreElement = document.getElementById('total-score');
+            const satisfactionLevelElement = document.getElementById('satisfaction-level');
+            const scoreGridElement = document.getElementById('score-grid');
+            const dimensionScoresElement = document.getElementById('dimension-scores');
+            const interpretationElement = document.getElementById('interpretation-content');
+            const suggestionsElement = document.getElementById('suggestions-content');
+            
+            const totalScore = result.totalScore;
+            const dimensionScores = result.dimensionScores;
+            const categoryAverages = result.categoryAverages;
+            
+            // 显示总分
+            totalScoreElement.textContent = totalScore;
+            
+            // 判断关系满意度水平
+            let satisfactionLevel, interpretation, color, suggestions;
+            
+            if (totalScore <= 52) {
+                satisfactionLevel = "非常不满意";
+                interpretation = "您的测评结果显示您对当前关系的满意度较低。关系中可能存在较多需要关注和改进的方面，建议您认真思考这些问题的根源。";
+                color = "#e74c3c";
+                suggestions = `
+                    <h4>改善建议：</h4>
+                    <ul>
+                        <li>与伴侣开诚布公地讨论关系中的问题</li>
+                        <li>寻求专业的关系咨询或夫妻治疗</li>
+                        <li>学习有效的沟通和冲突解决技巧</li>
+                        <li>重新评估双方的需求和期望是否匹配</li>
+                        <li>考虑暂时分开以重新思考关系方向</li>
+                        <li>关注自我成长和个人幸福感</li>
+                    </ul>
+                `;
+            } else if (totalScore <= 73) {
+                satisfactionLevel = "不太满意";
+                interpretation = "您的测评结果显示您对关系的满意度处于中等偏下水平。关系中既有积极的方面，也存在一些需要改进的问题。";
+                color = "#e67e22";
+                suggestions = `
+                    <h4>提升建议：</h4>
+                    <ul>
+                        <li>加强日常的积极沟通和情感表达</li>
+                        <li>共同制定关系改进的具体目标</li>
+                        <li>学习建设性的冲突处理方式</li>
+                        <li>增加共同活动和品质时间</li>
+                        <li>定期进行关系检查和调整</li>
+                    </ul>
+                `;
+            } else if (totalScore <= 87) {
+                satisfactionLevel = "基本满意";
+                interpretation = "您的测评结果显示您对关系基本满意。关系中存在许多积极因素，但仍有一些方面可以进一步改善。";
+                color = "#f39c12";
+                suggestions = `
+                    <h4>巩固建议：</h4>
+                    <ul>
+                        <li>继续保持关系中的优势方面</li>
+                        <li>针对薄弱环节制定改进计划</li>
+                        <li>定期表达感激和欣赏</li>
+                        <li>共同规划未来和发展目标</li>
+                        <li>保持个人空间和共同活动的平衡</li>
+                    </ul>
+                `;
+            } else if (totalScore <= 97) {
+                satisfactionLevel = "满意";
+                interpretation = "您的测评结果显示您对关系感到满意。您的关系质量较高，双方在多个方面都有良好的互动和连接。";
+                color = "#2ecc71";
+                suggestions = `
+                    <h4>维持建议：</h4>
+                    <ul>
+                        <li>继续保持当前的积极互动模式</li>
+                        <li>定期创造新鲜感和浪漫时刻</li>
+                        <li>共同学习和成长，发展新的共同兴趣</li>
+                        <li>建立更深层次的情感连接</li>
+                        <li>帮助其他伴侣改善他们的关系</li>
+                    </ul>
+                `;
+            } else {
+                satisfactionLevel = "非常满意";
+                interpretation = "您的测评结果显示您对关系非常满意。这表明您的关系质量很高，双方在各个维度都有出色的表现和深厚的连接。";
+                color = "#27ae60";
+                suggestions = `
+                    <h4>卓越关系建议：</h4>
+                    <ul>
+                        <li>继续保持这种高质量的关系状态</li>
+                        <li>分享您的关系成功经验</li>
+                        <li>共同探索更深层次的精神连接</li>
+                        <li>制定长期的关系发展愿景</li>
+                        <li>成为其他伴侣的榜样和指导</li>
+                    </ul>
+                `;
+            }
+            
+            satisfactionLevelElement.textContent = satisfactionLevel;
+            satisfactionLevelElement.style.color = color;
+            satisfactionLevelElement.style.fontWeight = "bold";
+            
+            // 生成评分网格
+            scoreGridElement.innerHTML = `
+                <div class="score-item">
+                    <div>总分</div>
+                    <div class="score-value" style="color: ${color}">${totalScore}</div>
+                    <div>范围: 15-105</div>
+                </div>
+                <div class="score-item">
+                    <div>满意度水平</div>
+                    <div class="score-value" style="color: ${color}">${satisfactionLevel}</div>
+                    <div>评估结果</div>
+                </div>
+                <div class="score-item">
+                    <div>参考标准</div>
+                    <div class="score-value">15-105</div>
+                    <div>分数越高越满意</div>
+                </div>
+            `;
+            
+            // 生成维度分数
+            let dimensionHTML = '<h3>各维度平均分</h3><div class="dimension-grid">';
+            for (const [category, average] of Object.entries(categoryAverages)) {
+                let categoryColor = "#3498db";
+                if (average < 4) categoryColor = "#e74c3c";
+                else if (average < 5.5) categoryColor = "#f39c12";
+                else categoryColor = "#2ecc71";
+                
+                dimensionHTML += `
+                    <div class="dimension-item">
+                        <div>${category}</div>
+                        <div class="dimension-value" style="color: ${categoryColor}">${average}</div>
+                        <div>平均分(1-7)</div>
+                    </div>
+                `;
+            }
+            dimensionHTML += '</div>';
+            dimensionScoresElement.innerHTML = dimensionHTML;
+            
+            // 显示解读内容
+            interpretationElement.innerHTML = `
+                <p>${interpretation}</p>
+                <p>根据您的测评结果，您在以下维度表现较好：${getTopDimensions(dimensionScores, 3)}</p>
+                <p>可能需要关注的维度：${getBottomDimensions(dimensionScores, 3)}</p>
+            `;
+            
+            // 显示建议内容
+            suggestionsElement.innerHTML = suggestions;
+            
+            // 显示结果区域
+            resultSection.style.display = 'block';
+            
+            // 滚动到结果区域
+            resultSection.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // 获取得分最高的维度
+        function getTopDimensions(dimensionScores, count) {
+            const sorted = [...dimensionScores].sort((a, b) => b.score - a.score);
+            return sorted.slice(0, count).map(d => d.dimension).join('、');
+        }
+
+        // 获取得分最低的维度
+        function getBottomDimensions(dimensionScores, count) {
+            const sorted = [...dimensionScores].sort((a, b) => a.score - b.score);
+            return sorted.slice(0, count).map(d => d.dimension).join('、');
+        }
+
+        // 初始化页面
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeQuestions();
+            
+            // 提交按钮事件
+            document.getElementById('submit-btn').addEventListener('click', function() {
+                const result = calculateScore();
+                if (result !== null) {
+                    displayResult(result);
+                }
+            });
+        });
+    </script>
+</body>
+</html>

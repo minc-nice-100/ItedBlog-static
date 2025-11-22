@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SDS抑郁自评量表测评</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+        }
+        
+        body {
+            background-color: #f5f7fa;
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #eaeaea;
+        }
+        
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            color: #7f8c8d;
+            font-size: 1.1rem;
+        }
+        
+        .intro-section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            border-left: 4px solid #3498db;
+        }
+        
+        .intro-section h2 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+        }
+        
+        .intro-section p {
+            margin-bottom: 10px;
+        }
+        
+        .instructions {
+            background: #fff8e1;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border-left: 4px solid #ffc107;
+        }
+        
+        .instructions h3 {
+            color: #e67e22;
+            margin-bottom: 10px;
+        }
+        
+        .question-section {
+            margin: 30px 0;
+        }
+        
+        .question {
+            background: white;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            border-left: 4px solid #3498db;
+        }
+        
+        .question-title {
+            font-weight: bold;
+            margin-bottom: 15px;
+            font-size: 1.1rem;
+        }
+        
+        .options {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .option {
+            flex: 1;
+            min-width: 120px;
+        }
+        
+        .option label {
+            display: block;
+            padding: 10px 15px;
+            background: #f1f8ff;
+            border: 1px solid #d1e3f6;
+            border-radius: 5px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .option input {
+            display: none;
+        }
+        
+        .option input:checked + label {
+            background: #3498db;
+            color: white;
+            border-color: #2980b9;
+        }
+        
+        .option label:hover {
+            background: #e1f0ff;
+        }
+        
+        .btn-container {
+            text-align: center;
+            margin: 30px 0;
+        }
+        
+        .btn {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            font-size: 1.1rem;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        
+        .btn:hover {
+            background: #2980b9;
+        }
+        
+        .result-section {
+            display: none;
+            margin-top: 40px;
+            padding: 25px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        
+        .result-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .total-score {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #2c3e50;
+            margin: 10px 0;
+        }
+        
+        .score-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 20px;
+            margin: 30px 0;
+        }
+        
+        .score-item {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+        
+        .score-value {
+            font-size: 1.8rem;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        
+        .interpretation {
+            margin-top: 30px;
+            padding: 20px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+        
+        .interpretation h3 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+        }
+        
+        .interpretation p {
+            margin-bottom: 15px;
+        }
+        
+        .note {
+            font-size: 0.9rem;
+            color: #7f8c8d;
+            margin-top: 20px;
+            font-style: italic;
+        }
+        
+        @media (max-width: 768px) {
+            .options {
+                flex-direction: column;
+            }
+            
+            .option {
+                width: 100%;
+            }
+            
+            .score-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>SDS抑郁自评量表</h1>
+            <div class="subtitle">Self-Rating Depression Scale</div>
+        </header>
+        
+        <section class="intro-section">
+            <h2>量表简介</h2>
+            <p>抑郁自评量表（SDS）由William W.K. Zung于1965年编制，是用于衡量抑郁状态轻重程度及其在治疗中的变化的经典自评工具。</p>
+            <p>本量表包含20个条目，反映了抑郁状态的四个具体特征：情感症状、躯体障碍、精神运动障碍和心理障碍。</p>
+        </section>
+        
+        <section class="instructions">
+            <h3>测评说明</h3>
+            <p>请仔细阅读每一条目，根据您<strong>最近一周</strong>的实际感觉，选择最符合的选项。</p>
+            <p>请注意：所有题目均需作答，测评大约需要5-10分钟。</p>
+        </section>
+        
+        <section class="question-section" id="questions-container">
+            <!-- 问题将通过JavaScript动态生成 -->
+        </section>
+        
+        <div class="btn-container">
+            <button class="btn" id="submit-btn">提交测评</button>
+        </div>
+        
+        <section class="result-section" id="result-section">
+            <div class="result-header">
+                <h2>测评结果</h2>
+                <div class="total-score">标准分: <span id="standard-score">--</span></div>
+                <div id="depression-level"></div>
+            </div>
+            
+            <div class="score-grid" id="score-grid">
+                <!-- 评分结果将通过JavaScript动态生成 -->
+            </div>
+            
+            <div class="interpretation">
+                <h3>结果解读与建议</h3>
+                <div id="interpretation-content">
+                    <!-- 解读内容将通过JavaScript动态生成 -->
+                </div>
+                <div class="note">
+                    注意：本测评结果仅供参考，不能作为临床诊断的依据。如有需要，请咨询专业心理医生或心理咨询师。
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <script>
+        // SDS量表问题和选项
+        const sdsQuestions = [
+            "我感到情绪沮丧，郁闷",
+            "我感到早晨心情最好",
+            "我要哭或想哭",
+            "我夜间睡眠不好",
+            "我吃饭像平时一样多",
+            "我的性功能正常",
+            "我感到体重减轻",
+            "我为便秘烦恼",
+            "我的心跳比平时快",
+            "我无故感到疲劳",
+            "我的头脑像往常一样清楚",
+            "我做事情像平时一样不感到困难",
+            "我坐卧不安，难以保持平静",
+            "我对未来感到有希望",
+            "我比平时更容易激怒",
+            "我觉得决定什么事很容易",
+            "我感到自己是有用的和不可缺少的人",
+            "我的生活很有意义",
+            "假若我死了别人会过得更好",
+            "我仍旧喜爱自己平时喜爱的东西"
+        ];
+
+        // SDS量表的正向计分题（需要反向计分）
+        const reverseQuestions = [2, 5, 6, 11, 12, 14, 16, 17, 18, 20];
+
+        // 初始化问题
+        function initializeQuestions() {
+            const questionsContainer = document.getElementById('questions-container');
+            
+            sdsQuestions.forEach((question, index) => {
+                const questionElement = document.createElement('div');
+                questionElement.className = 'question';
+                
+                const questionTitle = document.createElement('div');
+                questionTitle.className = 'question-title';
+                questionTitle.textContent = `${index + 1}. ${question}`;
+                questionElement.appendChild(questionTitle);
+                
+                const optionsContainer = document.createElement('div');
+                optionsContainer.className = 'options';
+                
+                // SDS选项：1=没有或很少时间，2=小部分时间，3=相当多时间，4=绝大部分或全部时间
+                const options = [
+                    { value: 1, text: '没有或很少时间' },
+                    { value: 2, text: '小部分时间' },
+                    { value: 3, text: '相当多时间' },
+                    { value: 4, text: '绝大部分或全部时间' }
+                ];
+                
+                options.forEach(option => {
+                    const optionElement = document.createElement('div');
+                    optionElement.className = 'option';
+                    
+                    const input = document.createElement('input');
+                    input.type = 'radio';
+                    input.name = `question-${index}`;
+                    input.value = option.value;
+                    input.id = `q${index}-opt${option.value}`;
+                    
+                    const label = document.createElement('label');
+                    label.htmlFor = `q${index}-opt${option.value}`;
+                    label.textContent = option.text;
+                    
+                    optionElement.appendChild(input);
+                    optionElement.appendChild(label);
+                    optionsContainer.appendChild(optionElement);
+                });
+                
+                questionElement.appendChild(optionsContainer);
+                questionsContainer.appendChild(questionElement);
+            });
+        }
+
+        // 计算得分
+        function calculateScore() {
+            let rawScore = 0;
+            
+            for (let i = 0; i < sdsQuestions.length; i++) {
+                const selectedOption = document.querySelector(`input[name="question-${i}"]:checked`);
+                
+                if (!selectedOption) {
+                    alert(`请回答第 ${i + 1} 题`);
+                    return null;
+                }
+                
+                let score = parseInt(selectedOption.value);
+                
+                // 反向计分题处理
+                if (reverseQuestions.includes(i + 1)) {
+                    score = 5 - score; // 1->4, 2->3, 3->2, 4->1
+                }
+                
+                rawScore += score;
+            }
+            
+            // 计算标准分（原始分×1.25）
+            const standardScore = Math.round(rawScore * 1.25);
+            
+            return {
+                rawScore: rawScore,
+                standardScore: standardScore
+            };
+        }
+
+        // 显示结果
+        function displayResult(score) {
+            const resultSection = document.getElementById('result-section');
+            const standardScoreElement = document.getElementById('standard-score');
+            const depressionLevelElement = document.getElementById('depression-level');
+            const scoreGridElement = document.getElementById('score-grid');
+            const interpretationElement = document.getElementById('interpretation-content');
+            
+            // 显示标准分
+            standardScoreElement.textContent = score.standardScore;
+            
+            // 判断抑郁程度
+            let depressionLevel, interpretation, color;
+            
+            if (score.standardScore < 53) {
+                depressionLevel = "无抑郁";
+                interpretation = "您的测评结果显示无抑郁症状。请继续保持良好的心理状态，注意自我调节和压力管理。";
+                color = "#2ecc71";
+            } else if (score.standardScore < 63) {
+                depressionLevel = "轻度抑郁";
+                interpretation = "您的测评结果显示存在轻度抑郁症状。建议您关注自己的情绪变化，适当进行放松和调节，如运动、社交活动等。如果症状持续，可考虑寻求专业心理咨询。";
+                color = "#f39c12";
+            } else if (score.standardScore < 73) {
+                depressionLevel = "中度抑郁";
+                interpretation = "您的测评结果显示存在中度抑郁症状。建议您寻求专业心理咨询或心理医生的帮助，同时注意自我调节，保持规律作息，与亲友保持沟通。";
+                color = "#e67e22";
+            } else {
+                depressionLevel = "重度抑郁";
+                interpretation = "您的测评结果显示存在重度抑郁症状。强烈建议您尽快寻求专业心理医生或精神科医生的帮助，进行详细评估和必要的治疗。请记住，寻求帮助是勇敢和明智的选择。";
+                color = "#e74c3c";
+            }
+            
+            depressionLevelElement.textContent = depressionLevel;
+            depressionLevelElement.style.color = color;
+            depressionLevelElement.style.fontWeight = "bold";
+            
+            // 生成评分网格
+            scoreGridElement.innerHTML = `
+                <div class="score-item">
+                    <div>原始总分</div>
+                    <div class="score-value">${score.rawScore}</div>
+                    <div>范围: 20-80</div>
+                </div>
+                <div class="score-item">
+                    <div>标准分</div>
+                    <div class="score-value" style="color: ${color}">${score.standardScore}</div>
+                    <div>范围: 25-100</div>
+                </div>
+                <div class="score-item">
+                    <div>抑郁程度</div>
+                    <div class="score-value" style="color: ${color}">${depressionLevel}</div>
+                    <div>评估结果</div>
+                </div>
+            `;
+            
+            // 显示解读内容
+            interpretationElement.innerHTML = `<p>${interpretation}</p>`;
+            
+            // 显示结果区域
+            resultSection.style.display = 'block';
+            
+            // 滚动到结果区域
+            resultSection.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // 初始化页面
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeQuestions();
+            
+            // 提交按钮事件
+            document.getElementById('submit-btn').addEventListener('click', function() {
+                const score = calculateScore();
+                if (score) {
+                    displayResult(score);
+                }
+            });
+        });
+    </script>
+</body>
+</html>
