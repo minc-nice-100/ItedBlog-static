@@ -30,7 +30,7 @@ done
 # Directories & URLs
 # -----------------------------
 INSTALL_PKG_URL="https://static.itedev.com/files/af-fast-install/package.tar.gz"
-TMP_DIR=$(mktemp -d /tmp/install-all-XXXXXX)
+TMP_DIR=$(mktemp -d /tmp/install_all_XXXXXX)
 PACKAGE="$TMP_DIR/package.tar.gz"
 INSTALLER_DIR="$TMP_DIR/package/install/installer"
 INFO_DIR="/opt/itedev-info/"
@@ -84,9 +84,9 @@ run_component() {
 
     if [[ "$name" == "beszel-agent" ]]; then
         [ -z "$TOKEN" ] && log_error "Missing required -t <token> for beszel-agent"
-        bash "$script" -t "$TOKEN"
+        "$script" -t "$TOKEN"
     else
-        bash "$script"
+        "$script"
     fi
 
     log_success "$name installation completed"
