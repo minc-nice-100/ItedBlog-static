@@ -1,0 +1,41 @@
+name: 构建并同步到 R2
+
+on:
+  push:
+    branches: [ main ] # 或者你的主分支
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+
+      # - name: 安装 AWS CLI
+      #   run: |
+      #     sudo apt-get update
+      #     sudo apt-get install unzip
+      #     curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+      #     unzip awscliv2.zip
+      #     sudo ./aws/install
+      #     rm -rf aws awscliv2.zip
+
+      - name: 同步文件到 Cloudflare R2
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: auto  # R2 固定使用 auto
+        run: |
+          # 使用 aws s3 sync 命令同步构建产物到 R2 桶
+          # --endpoint-url 指定 R2 的 API 地址
+          # --delete 参数会删除桶里有但本地已不存在的文件（按需使用）
+          aws s3 sync ./ s3://${{ secrets.R2_BUCKET_NAME }}/ \
+              --endpoint-url ${{ secrets.R2_ENDPOINT }} \
+              --exclude ".git/*" \
+              --exclude ".github/*" \
+              --exclude ".gitignore" \
+              --exclude ".env" \
+              --exclude ".env.*" \
+              --exclude ".DS_Store" \
+              --exclude "Thumbs.db" \
+              --delete
